@@ -1286,9 +1286,13 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	activateDiv(divId) {
 		var divIds = ["checkout_program", "checkout_student_details", "checkout_payment"];
 		// Remove the active class from all div elements
-		divIds.forEach((id) => document.getElementById(id).classList.remove("active_checkout_tab"));
+		divIds.forEach((id) => {
+			var el = document.getElementById(id);
+			if (el) el.classList.remove("active_checkout_tab");
+		});
 		// Add the active class to the div with the specified id
-		document.getElementById(divId).classList.add("active_checkout_tab");
+		var targetEl = document.getElementById(divId);
+		if (targetEl) targetEl.classList.add("active_checkout_tab");
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
 	addEventForPrevNaxt() {
@@ -1718,8 +1722,13 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			this.handlePaymentEvent();
 			// Handle previous and next button
 			this.addEventForPrevNaxt();
-			// activate program tab
-			if(!this.checkBackButtonEvent()){
+			// Sync content panel with stepper: if a step already has "active" (e.g. from HTML), activate the matching div
+			var stepToDivId = { 'program': 'checkout_program', 'student-details': 'checkout_student_details', 'pay-deposite': 'checkout_payment' };
+			var activeStep = document.querySelector('.stepper-container ul li.active');
+			var stepId = activeStep && activeStep.id ? activeStep.id : null;
+			if (stepId && stepToDivId[stepId]) {
+				this.activateDiv(stepToDivId[stepId]);
+			} else if (!this.checkBackButtonEvent()) {
 				this.activateDiv("checkout_student_details");
 			}
 			// loader icon code
@@ -2508,8 +2517,17 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	activeBreadCrumb(activeId) {
 		let breadCrumbList = document.querySelectorAll('.stepper-container ul li');
 		breadCrumbList.forEach(element => element.classList.remove('active'))
-		document.getElementById(activeId).classList.add('active')
-
+		const activeEl = document.getElementById(activeId);
+		if (activeEl) activeEl.classList.add('active');
+		// Keep content panel in sync with stepper (so active tab matches active step)
+		const stepToDivId = {
+			'program': 'checkout_program',
+			'student-details': 'checkout_student_details',
+			'pay-deposite': 'checkout_payment'
+		};
+		if (stepToDivId[activeId]) {
+			this.activateDiv(stepToDivId[activeId]);
+		}
 	}
 
 	// New Supplimentary program update
