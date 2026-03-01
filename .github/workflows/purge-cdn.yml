@@ -1,0 +1,16 @@
+name: Purge jsDelivr CDN
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'checkout_with_abandoned.jsonlineclass.js'
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge CDN cache
+        uses: egad13/purge-jsdelivr-cache@v1
+        with:
+          url: https://cdn.jsdelivr.net/gh/vsp1196/NSD_webflow_checkout_file@main/checkout_with_abandoned.jsonlineclass.js
