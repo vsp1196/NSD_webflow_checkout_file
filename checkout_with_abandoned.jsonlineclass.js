@@ -1304,11 +1304,14 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var checkoutFormError = document.getElementById("checkout-form-error");
 		var $this = this;
 		var form = $("#checkout-form");
-		next_page_1.addEventListener("click", function () {
-			$this.activateDiv("checkout_student_details");
-			//initialCheckout = $this.initializeStripePayment();
-		});
-		next_page_2.addEventListener("click", function () {
+		if (next_page_1) {
+			next_page_1.addEventListener("click", function () {
+				$this.activateDiv("checkout_student_details");
+				//initialCheckout = $this.initializeStripePayment();
+			});
+		}
+		if (next_page_2) {
+			next_page_2.addEventListener("click", function () {
 
 			if (form.valid()) {
 				initialCheckout = $this.initializeStripePayment();
@@ -1320,7 +1323,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				// validation for student email different form Parent email
 				var isValidName = $this.checkUniqueStudentEmail();
 				if (isValidName) {
-					checkoutFormError.style.display = "none";
+					if (checkoutFormError) checkoutFormError.style.display = "none";
 					$this.activateDiv("checkout_payment");
 					if (initialCheckout) {
 						initialCheckout.then(() => {
@@ -1352,19 +1355,24 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					}
 					
 				} else {
-					checkoutFormError.style.display = "block";
+					if (checkoutFormError) checkoutFormError.style.display = "block";
 				}
 			}
 		});
-		prev_page_1.addEventListener("click", function () {
-			$this.activateDiv("checkout_program");
-		});
-		prev_page_2.addEventListener("click", function () {
-			// click on back button reinitialize payment tab
-			$this.reinitializePaymentTab();
+		}
+		if (prev_page_1) {
+			prev_page_1.addEventListener("click", function () {
+				$this.activateDiv("checkout_program");
+			});
+		}
+		if (prev_page_2) {
+			prev_page_2.addEventListener("click", function () {
+				// click on back button reinitialize payment tab
+				$this.reinitializePaymentTab();
 
-			$this.activateDiv("checkout_student_details");
-		});
+				$this.activateDiv("checkout_student_details");
+			});
+		}
 		
 
 		let editStudentEl = document.querySelectorAll("[data-student-info='edit']")
