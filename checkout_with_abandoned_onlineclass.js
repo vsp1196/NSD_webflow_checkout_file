@@ -1865,6 +1865,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	//updateOldStudentList
 	async updateOldStudentList() {
+		console.log("updateOldStudentList");
 		const selectBox = document.getElementById('old-student');
 		if (!selectBox) return;
 		var $this = this;
@@ -2573,7 +2574,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			if (activeEl && activeEl.parentElement) breadCrumbList = activeEl.parentElement.querySelectorAll('li');
 		}
 		breadCrumbList.forEach(element => element.classList.remove('active'));
-		const activeEl = document.getElementById(activeId);
 		if (activeEl) activeEl.classList.add('active');
 		// Keep content panel in sync with stepper (so active tab matches active step)
 		const stepToDivId = {
