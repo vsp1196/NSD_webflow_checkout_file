@@ -1865,16 +1865,25 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	//updateOldStudentList
 	async updateOldStudentList() {
-		const selectBox = document.getElementById('old-student')
+		const selectBox = document.getElementById('old-student');
+		if (!selectBox) return;
 		var $this = this;
+		if (!this.memberData || this.memberData.memberId == null || this.memberData.memberId === '') {
+			selectBox.innerHTML = '<option value="">Please sign in or refresh</option>';
+			return;
+		}
 		try {
-			const data = await this.fetchData("getAllPreviousStudents/" + this.memberData.memberId+"/true");
-			//finding unique value and sorting by firstName
+			const rawData = await this.fetchData("getAllPreviousStudents/" + this.memberData.memberId + "/true");
+			// API may return array or { data: [] } / { students: [] }
+			const data = Array.isArray(rawData) ? rawData : (rawData && (rawData.data || rawData.students)) || [];
+			// Finding unique value and sorting by firstName (guard missing firstName/lastName)
 			const filterData = data.filter((item, index, self) =>
-				index === self.findIndex(obj => obj.studentEmail === item.studentEmail)
+				item && item.studentEmail && index === self.findIndex(obj => obj.studentEmail === item.studentEmail)
 			).sort(function (a, b) {
-				return a.firstName.trim().localeCompare(b.firstName.trim())
-			})
+				var aName = (a.firstName || '').trim();
+				var bName = (b.firstName || '').trim();
+				return aName.localeCompare(bName);
+			});
 			// Clear existing options
 			selectBox.innerHTML = '';
 			// Add a "Please select" option
@@ -1886,29 +1895,35 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			filterData.forEach((item, index) => {
 				const option = document.createElement('option');
 				option.value = index;
-				option.textContent = `${item.firstName} ${item.lastName}`;
+				option.textContent = `${item.firstName || ''} ${item.lastName || ''}`.trim() || 'Student';
 				selectBox.appendChild(option);
 			});
-			selectBox.addEventListener('change', function (event) {
-				var checkoutJson = localStorage.getItem("checkOutBasicData");
-				var data = {
-					studentEmail: filterData[event.target.value].studentEmail,
-					firstName: filterData[event.target.value].firstName,
-					lastName: filterData[event.target.value].lastName,
-					grade: filterData[event.target.value].studentGrade,
-					school: filterData[event.target.value].school,
-					gender: filterData[event.target.value].gender,
-				};
-				localStorage.setItem("checkOutBasicData", JSON.stringify(data));
-				$this.updateBasicData();
-			})
+			// Keep current list on instance so the single change listener always uses latest data
+			$this.$oldStudentListData = filterData;
+			// Only add change listener once to avoid duplicates when updateOldStudentList runs again
+			if (!selectBox.dataset.oldStudentListener) {
+				selectBox.dataset.oldStudentListener = 'true';
+				selectBox.addEventListener('change', function (event) {
+					var idx = event.target.value;
+					var list = $this.$oldStudentListData;
+					if (idx === '' || !list || !list[idx]) return;
+					var chosen = list[idx];
+					var data = {
+						studentEmail: chosen.studentEmail,
+						firstName: chosen.firstName,
+						lastName: chosen.lastName,
+						grade: chosen.studentGrade,
+						school: chosen.school,
+						gender: chosen.gender,
+					};
+					localStorage.setItem("checkOutBasicData", JSON.stringify(data));
+					$this.updateBasicData();
+				});
+			}
 		} catch (error) {
 			console.error('Error fetching API data:', error);
-
-			// Handle errors (optional)
 			selectBox.innerHTML = '<option value="">Student Details not available</option>';
 		}
-		
 	}
 	displayUpSellModal() {
 		if (!this.memberData || !this.memberData.isAdmin) {
