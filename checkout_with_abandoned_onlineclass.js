@@ -699,14 +699,19 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// Initializes CheckOutWebflow instance and sets up checkout flow
 	constructor(apiBaseUrl, memberData) {
 		super();
+		console.log("[CheckOutWebflow] constructor called");
 		this.baseUrl = apiBaseUrl;
 		this.memberData = memberData || {};
 		this.briefsUpsellEnabled = Boolean(this.memberData.isAdmin);
 		this.toggleSeasonInfoVisibility();
+		console.log("[CheckOutWebflow] about to call setupClassOfferingCardClicks");
+		this.setupClassOfferingCardClicks();
+		console.log("[CheckOutWebflow] setupClassOfferingCardClicks returned");
 		if (this.briefsUpsellEnabled) {
 			this.initializeBriefsUpsellModal();
 		}
 		this.renderPortalData();
+		console.log("[CheckOutWebflow] constructor finished");
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
@@ -1069,9 +1074,17 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			throw error;
 		}
 	}
+	// Returns true when on online class checkout (has class offering cards). Use createCheckoutUrlForOnlineClass, NOT createCheckoutUrlsByProgram.
+	isOnlineClassPage() {
+		return !!(document.querySelector(".checkout_offering-grid-container") || document.querySelector("[data-class-offering-id]"));
+	}
 	// Creates Stripe checkout URLs for ACH, card, and pay later payment methods
 	initializeStripePayment(paymentType = "", checkoutID = "", $baseUrl="createCheckoutUrlsByProgram") {
 		return new Promise((resolve, reject) => {
+			if (this.isOnlineClassPage() && ($baseUrl === "createCheckoutUrlsByProgram" || $baseUrl === "updateStripeCheckoutDb")) {
+				reject(new Error("Online class: use createCheckoutUrlForOnlineClass only"));
+				return;
+			}
 			var suppProIdE = document.getElementById('suppProIds');
 			var core_product_price = document.getElementById('core_product_price');
 
@@ -1196,6 +1209,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Formats program date string to YYYY-MM-DD HH:MM:SS.MICROSECONDS format
 	getProgramFormattedDate($date) {
+		console.log("getProgramFormattedDate");
 		if($date == undefined){
 			return false;
 		}	
@@ -1214,6 +1228,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Updates student details in database and stores checkout data in localStorage
 	updateStudentDetails(checkoutUrl) {
+		console.log("updateStudentDetails");
 		var $this = this;
 		return new Promise((resolve, reject) => {
 			var studentFirstName = document.getElementById('Student-First-Name');
@@ -1284,6 +1299,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Activates the specified checkout tab by adding active class
 	activateDiv(divId) {
+		console.log("activateDiv");
 		var divIds = ["checkout_program", "checkout_student_details", "checkout_payment"];
 		// Remove the active class from all div elements
 		divIds.forEach((id) => {
@@ -1296,6 +1312,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
 	addEventForPrevNaxt() {
+		console.log("addEventForPrevNext");
 		var initialCheckout = null
 		var next_page_1 = document.getElementById("next_page_1");
 		var next_page_2 = document.getElementById("next_page_2");
@@ -1311,10 +1328,12 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (next_page_2) {
+			console.log("next_opage_2");
 			next_page_2.addEventListener("click", function () {
 
 			if (form.valid()) {
-				initialCheckout = $this.initializeStripePayment();
+				// createCheckoutUrlsByProgram API not run here; run your API later (e.g. when user selects payment method or on payment step)
+				// initialCheckout = $this.initializeStripePayment();
 				if(!$this.$isAboundedProgram){
 					$this.storeBasicData();
 				}
@@ -1325,6 +1344,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				if (isValidName) {
 					if (checkoutFormError) checkoutFormError.style.display = "none";
 					$this.activateDiv("checkout_payment");
+					// Checkout URLs and updateStudentDetails run when you call initializeStripePayment() later (e.g. from your API flow)
 					if (initialCheckout) {
 						initialCheckout.then(() => {
 							var checkoutData = [$this.$checkoutData.achUrl, $this.$checkoutData.cardUrl, $this.$checkoutData.payLaterUrl];
@@ -1427,63 +1447,98 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var ach_payment = document.getElementById("ach_payment");
 		var card_payment = document.getElementById("card_payment");
 		var paylater_payment = document.getElementById("paylater_payment");
-		// Browser back button event hidden fields
 		var ibackbutton = document.getElementById("backbuttonstate");
 		var $this = this;
-		// let payNowLink = document.getElementById('pay-now-link');
-		// let payNowLinkMob = document.getElementById('pay-now-link-2');
-		ach_payment.addEventListener("click", function () {
-			let suppProIdE = document.getElementById('suppProIds');
-			let suppProIds = JSON.parse(suppProIdE.value)
-			var myInterval1 =  setInterval(() => {
-				if($this.$initCheckout ){
+		if (ach_payment) {
+			ach_payment.addEventListener("click", function () {
+				if (ibackbutton) ibackbutton.value = "1";
+				if ($this.$initCheckout && $this.$checkoutData && $this.$checkoutData.achUrl) {
+					window.location.href = $this.$checkoutData.achUrl;
+					return;
+				}
+				if ($this.isOnlineClassPage() && (!$this.$checkoutData || !$this.$checkoutData.achUrl)) {
+					alert("Please select a class offering first.");
+					return;
+				}
+				var myInterval1 = setInterval(function () {
+					if (!$this.$initCheckout) return;
 					clearInterval(myInterval1);
-					let initialCheckout = $this.initializeStripePayment('us_bank_account', $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
+					if ($this.$checkoutData && $this.$checkoutData.achUrl) {
+						if (ibackbutton) ibackbutton.value = "1";
+						window.location.href = $this.$checkoutData.achUrl;
+						return;
+					}
+					if ($this.isOnlineClassPage()) return;
+					var initialCheckout = $this.initializeStripePayment('us_bank_account', $this.$checkoutData && $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
 					if (initialCheckout) {
-						initialCheckout.then(() => {
-							ibackbutton.value = "1";
-							//payNowLink.innerHTML = "Pay Now"
+						initialCheckout.then(function () {
+							if (ibackbutton) ibackbutton.value = "1";
 							window.location.href = $this.$checkoutData.achUrl;
-							
-						})
+						});
 					}
+				}, 1000);
+			});
+		}
+		if (card_payment) {
+			card_payment.addEventListener("click", function () {
+				if (ibackbutton) ibackbutton.value = "1";
+				if ($this.$initCheckout && $this.$checkoutData && $this.$checkoutData.cardUrl) {
+					window.location.href = $this.$checkoutData.cardUrl;
+					return;
 				}
-			}, 1000);
-		});
-		card_payment.addEventListener("click", function () {
-			let suppProIdE = document.getElementById('suppProIds');
-			let suppProIds = JSON.parse(suppProIdE.value)
-			var myInterval3 =  setInterval(() => {
-				if($this.$initCheckout){
+				if ($this.isOnlineClassPage() && (!$this.$checkoutData || !$this.$checkoutData.cardUrl)) {
+					alert("Please select a class offering first.");
+					return;
+				}
+				var myInterval3 = setInterval(function () {
+					if (!$this.$initCheckout) return;
 					clearInterval(myInterval3);
-					let initialCheckout = $this.initializeStripePayment('card', $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
+					if ($this.$checkoutData && $this.$checkoutData.cardUrl) {
+						if (ibackbutton) ibackbutton.value = "1";
+						window.location.href = $this.$checkoutData.cardUrl;
+						return;
+					}
+					if ($this.isOnlineClassPage()) return;
+					var initialCheckout = $this.initializeStripePayment('card', $this.$checkoutData && $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
 					if (initialCheckout) {
-						initialCheckout.then(() => {
-							ibackbutton.value = "1";
-							//payNowLink.innerHTML = "Pay Now"
+						initialCheckout.then(function () {
+							if (ibackbutton) ibackbutton.value = "1";
 							window.location.href = $this.$checkoutData.cardUrl;
-						})
+						});
 					}
+				}, 1000);
+			});
+		}
+		if (paylater_payment) {
+			paylater_payment.addEventListener("click", function () {
+				if (ibackbutton) ibackbutton.value = "1";
+				if ($this.$initCheckout && $this.$checkoutData && $this.$checkoutData.payLaterUrl) {
+					window.location.href = $this.$checkoutData.payLaterUrl;
+					return;
 				}
-			}, 1000);
-		});
-		paylater_payment.addEventListener("click", function () {
-			let suppProIdE = document.getElementById('suppProIds');
-			let suppProIds = JSON.parse(suppProIdE.value)
-			var myInterval5 =  setInterval(() => {
-				if($this.$initCheckout){
+				if ($this.isOnlineClassPage() && (!$this.$checkoutData || !$this.$checkoutData.payLaterUrl)) {
+					alert("Please select a class offering first.");
+					return;
+				}
+				var myInterval5 = setInterval(function () {
+					if (!$this.$initCheckout) return;
 					clearInterval(myInterval5);
-					let initialCheckout = $this.initializeStripePayment('affirm', $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
-					if (initialCheckout) {
-						initialCheckout.then(() => {
-							ibackbutton.value = "1";
-							//payNowLink.innerHTML = "Pay Now"
-							window.location.href = $this.$checkoutData.payLaterUrl;
-						})
+					if ($this.$checkoutData && $this.$checkoutData.payLaterUrl) {
+						if (ibackbutton) ibackbutton.value = "1";
+						window.location.href = $this.$checkoutData.payLaterUrl;
+						return;
 					}
-				}
-			}, 1000);
-		});
+					if ($this.isOnlineClassPage()) return;
+					var initialCheckout = $this.initializeStripePayment('affirm', $this.$checkoutData && $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
+					if (initialCheckout) {
+						initialCheckout.then(function () {
+							if (ibackbutton) ibackbutton.value = "1";
+							window.location.href = $this.$checkoutData.payLaterUrl;
+						});
+					}
+				}, 1000);
+			});
+		}
 	}
 	// Updates student form fields with data from localStorage for supplementary program purchase
 	updateSuppData() {
@@ -1723,10 +1778,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// After API response we call the createMakeUpSession method to manipulate student data
 	async renderPortalData(memberId) {
 		try {
-			
-			// Update readOnly for core program
-			//this.updateDefaultCheckbox();
-			// Handle checkout button
 			this.handlePaymentEvent();
 			// Handle previous and next button
 			this.addEventForPrevNaxt();
@@ -1782,65 +1833,205 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			spinner.style.display = "none";
 			this.displaySupplementaryProgram();
 			this.updateOldStudentList();
-			this.eventForPayNowBtn()
+			try { this.eventForPayNowBtn(); } catch (e) { console.warn("eventForPayNowBtn:", e); }
 		} catch (error) {
 			console.error("Error rendering random number:", error);
 		}
 	}
 
+	// Online class: store selected class offering and call createCheckoutUrlForOnlineClass API
+	setupClassOfferingCardClicks() {
+		console.log("[setupClassOfferingCardClicks] called");
+		var $this = this;
+		function handleClassOfferingClick(e) {
+			var wrapper = e.target.closest(".checkout_offering-card-wrapper") || e.target.closest("[data-class-offering-id]");
+			if (!wrapper) {
+				console.log("[class-offering click] ignored – no wrapper (target:", e.target, "tagName:", e.target.tagName, "className:", (e.target.className || "").slice(0, 80) + ")");
+				return;
+			}
+			console.log("[class-offering click] wrapper found", wrapper, "classList:", wrapper.className, "data-class-offering-id:", wrapper.getAttribute("data-class-offering-id"));
+			if (wrapper.classList.contains("full")) {
+				console.log("[class-offering click] skipped – card has class 'full'");
+				return;
+			}
+			var classOfferingId = wrapper.getAttribute("data-class-offering-id");
+			if (!classOfferingId) {
+				console.log("[class-offering click] skipped – no data-class-offering-id on wrapper");
+				return;
+			}
+			$this.$selectedClassOfferingId = classOfferingId;
+			var container = wrapper.closest(".checkout_offering-grid-container");
+			if (container) {
+				container.querySelectorAll(".checkout_offering-card-wrapper, [data-class-offering-id]").forEach(function (el) { el.classList.remove("selected"); });
+				wrapper.classList.add("selected");
+			}
+			console.log("[class-offering click] calling createCheckoutUrlForOnlineClass for class_offering_id:", classOfferingId);
+			$this.createCheckoutUrlForOnlineClass(classOfferingId);
+		}
+		document.addEventListener("click", handleClassOfferingClick, true);
+		console.log("[setupClassOfferingCardClicks] document click listener attached (capture=true)");
+	}
+
+	// Calls createCheckoutUrlForOnlineClass API with dynamic email, memberId, class_offering_id, student from form; cancelUrl with returnType=Back
+	createCheckoutUrlForOnlineClass(classOfferingId) {
+		console.log("[createCheckoutUrlForOnlineClass] entered with classOfferingId:", classOfferingId);
+		var studentEmailEl = document.getElementById("Student-Email");
+		var studentFirstNameEl = document.getElementById("Student-First-Name");
+		var studentLastNameEl = document.getElementById("Student-Last-Name");
+		var studentGradeEl = document.getElementById("Student-Grade");
+		var studentGenderEl = document.getElementById("Student-Gender");
+		var email = (this.memberData && this.memberData.email) ? this.memberData.email.toLowerCase().trim() : "";
+		var memberId = (this.memberData && this.memberData.memberId) ? String(this.memberData.memberId).trim() : "";
+		var studentEmail = studentEmailEl ? studentEmailEl.value.trim().toLowerCase() : "";
+		var cancelUrl = new URL(window.location.href);
+		cancelUrl.searchParams.set("returnType", "Back");
+		if (!email || !memberId || !classOfferingId || !studentEmail) {
+			console.warn("[createCheckoutUrlForOnlineClass] missing data (request will still send):", {
+				email: email ? "set" : "MISSING",
+				memberId: memberId ? "set" : "MISSING",
+				class_offering_id: classOfferingId || "MISSING",
+				"student.email": studentEmail ? "set" : "MISSING"
+			});
+		}
+		var body = {
+			email: email,
+			memberId: memberId,
+			class_offering_id: classOfferingId,
+			student: {
+				email: studentEmail,
+				first_name: studentFirstNameEl ? studentFirstNameEl.value.trim() : "",
+				last_name: studentLastNameEl ? studentLastNameEl.value.trim() : "",
+				grade: studentGradeEl ? studentGradeEl.value.trim() : "",
+				gender: studentGenderEl ? studentGenderEl.value.trim() : ""
+			},
+			successUrl: "https://www.nsdebatecamp.com/online-classes/payment-confirmation",
+			cancelUrl: cancelUrl.href
+		};
+		var apiUrl = "https://3yf0irxn2c.execute-api.us-west-1.amazonaws.com/dev/camp/createCheckoutUrlForOnlineClass";
+		var $this = this;
+		console.log("[createCheckoutUrlForOnlineClass] request URL:", apiUrl);
+		console.log("[createCheckoutUrlForOnlineClass] request body:", body);
+		console.log("[createCheckoutUrlForOnlineClass] sending fetch now");
+		fetch(apiUrl, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body)
+		})
+			.then(function (res) {
+				console.log("[createCheckoutUrlForOnlineClass] fetch responded status:", res.status);
+				var contentType = res.headers.get("content-type");
+				var clone = res.clone();
+				if (!res.ok) {
+					clone.text().then(function (text) {
+						console.warn("[createCheckoutUrlForOnlineClass] response " + res.status + ":", text);
+						try { console.warn("createCheckoutUrlForOnlineClass response JSON:", JSON.parse(text)); } catch (e) {}
+					});
+					return res.json().catch(function () { return null; });
+				}
+				return res.json();
+			})
+			.then(function (data) {
+				console.log("[createCheckoutUrlForOnlineClass] response data:", data);
+				if (!data) return;
+				var achUrl = data.achUrl || "";
+				var cardUrl = data.cardUrl || "";
+				var payLaterUrl = data.payLaterUrl || "";
+				if (achUrl || cardUrl || payLaterUrl) {
+					console.log("[createCheckoutUrlForOnlineClass] URLs – achUrl:", achUrl, "cardUrl:", cardUrl, "payLaterUrl:", payLaterUrl);
+					$this.$checkoutData = {
+						achUrl: achUrl,
+						cardUrl: cardUrl,
+						payLaterUrl: payLaterUrl,
+						checkoutId: data.checkoutId || null
+					};
+					$this.$initCheckout = true;
+					$this.updateCheckoutUrlHiddenInputs(achUrl, cardUrl, payLaterUrl);
+					var existing = localStorage.getItem("checkOutData");
+					var merged = existing ? JSON.parse(existing) : {};
+					merged.checkoutData = { achUrl: achUrl, cardUrl: cardUrl, payLaterUrl: payLaterUrl };
+					localStorage.setItem("checkOutData", JSON.stringify(merged));
+				} else if (data.checkoutUrl || data.url) {
+					window.location.href = data.checkoutUrl || data.url;
+				}
+			})
+			.catch(function (err) { console.error("[createCheckoutUrlForOnlineClass] fetch error:", err); });
+	}
+
+	// Updates or creates hidden inputs (achUrlSession, cardUrlSession, payLaterUrlSession) used for payment redirects
+	updateCheckoutUrlHiddenInputs(achUrl, cardUrl, payLaterUrl) {
+		var ids = [
+			{ id: "achUrlSession", value: achUrl || "" },
+			{ id: "cardUrlSession", value: cardUrl || "" },
+			{ id: "payLaterUrlSession", value: payLaterUrl || "" }
+		];
+		var container = document.getElementById("checkout_student_details") || document.getElementById("checkout_payment") || document.body;
+		ids.forEach(function (item) {
+			var el = document.getElementById(item.id);
+			if (el) {
+				el.value = item.value;
+			} else {
+				var input = creEl("input", null, item.id);
+				input.type = "hidden";
+				input.value = item.value;
+				input.setAttribute("id", item.id);
+				if (container) container.appendChild(input);
+			}
+		});
+	}
 
 	eventForPayNowBtn() {
 		const $this = this;
 		let payNowLink = document.getElementById('pay-now-link');
-		payNowLink.addEventListener("click", function (e) {
-			e.preventDefault();
-			payNowLink.style.pointerEvents = "none";
-			payNowLink.innerHTML = "Processing..";
-			//console.log("click payNow Button")
-			let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-			activePaymentLink.click();
-		})
-		// Mobile PayNow link
+		if (payNowLink) {
+			payNowLink.addEventListener("click", function (e) {
+				e.preventDefault();
+				payNowLink.style.pointerEvents = "none";
+				payNowLink.innerHTML = "Processing..";
+				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
+				if (activePaymentLink) activePaymentLink.click();
+			});
+		}
 		let payNowLinkMo = document.getElementById('pay-now-link-2');
-		payNowLinkMo.addEventListener("click", function (e) {
-			e.preventDefault();
-			payNowLinkMo.style.pointerEvents = "none";
-			payNowLinkMo.innerHTML = "Processing..";
-			//console.log("click payNow Button")
-			let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-			activePaymentLink.click();
-		})
-
-		// New desktop button link
+		if (payNowLinkMo) {
+			payNowLinkMo.addEventListener("click", function (e) {
+				e.preventDefault();
+				payNowLinkMo.style.pointerEvents = "none";
+				payNowLinkMo.innerHTML = "Processing..";
+				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
+				if (activePaymentLink) activePaymentLink.click();
+			});
+		}
 		let payNowLink3 = document.getElementById('pay-now-link-3');
-		payNowLink3.addEventListener("click", function (e) {
-			e.preventDefault();
-			payNowLink3.style.pointerEvents = "none";
-			payNowLink3.innerHTML = "Processing..";
-			//console.log("click payNow Button")
-			let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-			activePaymentLink.click();
-		})
+		if (payNowLink3) {
+			payNowLink3.addEventListener("click", function (e) {
+				e.preventDefault();
+				payNowLink3.style.pointerEvents = "none";
+				payNowLink3.innerHTML = "Processing..";
+				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
+				if (activePaymentLink) activePaymentLink.click();
+			});
+		}
 
 		var allTabs = document.getElementsByClassName("checkout-tab-link");
 		for (var i = 0; i < allTabs.length; i++) {
 			var tab = allTabs[i];
+			if (!tab) continue;
 			tab.addEventListener('click', function () {
-				payNowLink.closest('div').style.display = "block"
-				payNowLinkMo.closest('div').style.display = "block"
-				payNowLink3.closest('div').style.display = "block"
+				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
+				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
+				if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
 				if (this.classList.contains('bank-transfer-tab')) {
-					payNowLink.innerHTML = "Pay Now With Bank Transfer"
-					payNowLinkMo.innerHTML = "Pay Now With Bank Transfer"
-					payNowLink3.innerHTML = "Pay Now With Bank Transfer"
-				}else if (this.classList.contains('credit-card-tab')) {
-					payNowLink.innerHTML = "Pay Now With Credit Card"
-					payNowLinkMo.innerHTML = "Pay Now With Credit Card"
-					payNowLink3.innerHTML = "Pay Now With Credit Card"
-				}else if (this.classList.contains('pay-later')) {
-					payNowLink.innerHTML = "Pay Now With BNPL"
-					payNowLinkMo.innerHTML = "Pay Now With BNPL"
-					payNowLink3.innerHTML = "Pay Now With BNPL"
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With Bank Transfer";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Bank Transfer";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Bank Transfer";
+				} else if (this.classList.contains('credit-card-tab')) {
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With Credit Card";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Credit Card";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Credit Card";
+				} else if (this.classList.contains('pay-later')) {
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With BNPL";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With BNPL";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With BNPL";
 				}
 				const hasBriefSelection = Boolean($this.appliedBriefEvent || $this.selectedBriefEvent);
 				let hasSuppSelections = false;
@@ -1858,7 +2049,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 						$this.updateOnlyTotalAmount();
 					});
 				}
-			})
+			});
 		}
 	}
 	/**New Code for select old student */
