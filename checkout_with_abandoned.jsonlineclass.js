@@ -1724,13 +1724,40 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			this.addEventForPrevNaxt();
 			// Sync content panel with stepper: if a step already has "active" (e.g. from HTML), activate the matching div
 			var stepToDivId = { 'program': 'checkout_program', 'student-details': 'checkout_student_details', 'pay-deposite': 'checkout_payment' };
-			var activeStep = document.querySelector('.stepper-container ul li.active');
+			var activeStep = document.querySelector('.stepper-container ul li.active')
+				|| document.querySelector('ul li.step.active')
+				|| document.querySelector('li.step.active');
+			// Fallback: check each known step id; if it has .active, use it (in case container class differs)
+			if (!activeStep) {
+				for (var sid in stepToDivId) {
+					var stepEl = document.getElementById(sid);
+					if (stepEl && stepEl.classList.contains('active')) {
+						activeStep = stepEl;
+						break;
+					}
+				}
+			}
 			var stepId = activeStep && activeStep.id ? activeStep.id : null;
 			if (stepId && stepToDivId[stepId]) {
 				this.activateDiv(stepToDivId[stepId]);
 			} else if (!this.checkBackButtonEvent()) {
 				this.activateDiv("checkout_student_details");
 			}
+			// Delayed sync in case stepper gets "active" from Webflow/other script after DOM ready
+			var $this = this;
+			setTimeout(function syncStepperWithTab() {
+				var active = document.querySelector('.stepper-container ul li.active')
+					|| document.querySelector('ul li.step.active')
+					|| document.querySelector('li.step.active');
+				if (!active && stepToDivId) {
+					for (var sid in stepToDivId) {
+						var el = document.getElementById(sid);
+						if (el && el.classList.contains('active')) { active = el; break; }
+					}
+				}
+				var id = active && active.id ? active.id : null;
+				if (id && stepToDivId[id]) $this.activateDiv(stepToDivId[id]);
+			}, 150);
 			// loader icon code
 			var spinner = document.getElementById("half-circle-spinner");
 			spinner.style.display = "block";
@@ -2516,7 +2543,13 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	activeBreadCrumb(activeId) {
 		let breadCrumbList = document.querySelectorAll('.stepper-container ul li');
-		breadCrumbList.forEach(element => element.classList.remove('active'))
+		if (!breadCrumbList.length) breadCrumbList = document.querySelectorAll('ul li.step');
+		if (!breadCrumbList.length) {
+			// Fallback: get siblings from the step we're activating
+			var activeEl = document.getElementById(activeId);
+			if (activeEl && activeEl.parentElement) breadCrumbList = activeEl.parentElement.querySelectorAll('li');
+		}
+		breadCrumbList.forEach(element => element.classList.remove('active'));
 		const activeEl = document.getElementById(activeId);
 		if (activeEl) activeEl.classList.add('active');
 		// Keep content panel in sync with stepper (so active tab matches active step)
