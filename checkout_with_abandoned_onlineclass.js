@@ -757,42 +757,33 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
-		var $this = this;
-		// Run DOM updates after tab switch so Webflow doesn’t overwrite
-		function applyOrderSummaryPrice() {
-			var displayPrice = $this.formatOnlineClassDisplayPrice($this.$onlineClassBasePrice, isCreditCard);
-			// 1) Exact order summary <p>: "dm-sans font-18 right-justified price-order-details" – set $ then price
-			var orderSummary = document.querySelector(".residential-order-summary-3");
-			if (orderSummary) {
-				var priceParas = orderSummary.querySelectorAll("p.price-order-details, p.dm-sans.font-18.right-justified.price-order-details, .price-order-details");
-				for (var i = 0; i < priceParas.length; i++) {
-					if (priceParas[i]) priceParas[i].textContent = displayPrice;
-				}
-			}
-			// 2) All .price-order-details on page (desktop + mobile copies)
-			var priceOrderDetails = document.querySelectorAll(".price-order-details");
-			for (var j = 0; j < priceOrderDetails.length; j++) {
-				if (priceOrderDetails[j]) priceOrderDetails[j].textContent = displayPrice;
-			}
-			var orderPriceEl = document.getElementById("online-class-order-price");
-			if (orderPriceEl) orderPriceEl.textContent = displayPrice;
-			var pCorePrices = document.getElementsByClassName("pCorePrice");
-			for (var k = 0; k < pCorePrices.length; k++) {
-				if (pCorePrices[k]) pCorePrices[k].textContent = displayPrice;
-			}
-			var totalGrid = document.querySelector(".total-price-grid-wrapper");
-			if (totalGrid) {
-				var inGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
-				for (var m = 0; m < inGrid.length; m++) {
-					if (inGrid[m]) inGrid[m].textContent = displayPrice;
-				}
-			}
-			if (typeof $this.updateOnlyTotalAmount === "function") $this.updateOnlyTotalAmount();
+		// Update all order summary and total price display elements
+		var orderPriceEl = document.getElementById("online-class-order-price");
+		if (orderPriceEl) orderPriceEl.textContent = displayPrice;
+		var priceOrderDetails = document.querySelectorAll(".price-order-details");
+		for (var i = 0; i < priceOrderDetails.length; i++) {
+			if (priceOrderDetails[i]) priceOrderDetails[i].textContent = displayPrice;
 		}
-		requestAnimationFrame(function () {
-			applyOrderSummaryPrice();
-			setTimeout(applyOrderSummaryPrice, 50);
-		});
+		var pCorePrices = document.getElementsByClassName("pCorePrice");
+		for (var j = 0; j < pCorePrices.length; j++) {
+			if (pCorePrices[j]) pCorePrices[j].textContent = displayPrice;
+		}
+		var orderSummary = document.querySelector(".residential-order-summary-3");
+		if (orderSummary) {
+			var inSummary = orderSummary.querySelectorAll(".price-order-details, .pCorePrice, [id='online-class-order-price']");
+			for (var k = 0; k < inSummary.length; k++) {
+				if (inSummary[k]) inSummary[k].textContent = displayPrice;
+			}
+			console.log("[updateOnlineClassPriceForTab] updated .residential-order-summary-3 inner count:", inSummary.length);
+		}
+		var totalGrid = document.querySelector(".total-price-grid-wrapper");
+		if (totalGrid) {
+			var totalPriceInGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
+			for (var m = 0; m < totalPriceInGrid.length; m++) {
+				if (totalPriceInGrid[m]) totalPriceInGrid[m].textContent = displayPrice;
+			}
+		}
+		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
@@ -2091,46 +2082,43 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 
-		var allTabs = document.getElementsByClassName("checkout-tab-link");
-		for (var i = 0; i < allTabs.length; i++) {
-			var tab = allTabs[i];
-			if (!tab) continue;
-			tab.addEventListener('click', function () {
-				$this.updateOnlineClassPriceForTab(this);
-				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
-				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
-				if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
-				if (this.classList.contains('bank-transfer-tab')) {
-					if (payNowLink) payNowLink.innerHTML = "Pay Now With Bank Transfer";
-					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Bank Transfer";
-					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Bank Transfer";
-				} else if (this.classList.contains('credit-card-tab')) {
-					if (payNowLink) payNowLink.innerHTML = "Pay Now With Credit Card";
-					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Credit Card";
-					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Credit Card";
-				} else if (this.classList.contains('pay-later')) {
-					if (payNowLink) payNowLink.innerHTML = "Pay Now With BNPL";
-					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With BNPL";
-					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With BNPL";
+		function handlePaymentTabClick(tab) {
+			try { $this.updateOnlineClassPriceForTab(tab); } catch (e) { console.warn("updateOnlineClassPriceForTab:", e); }
+			if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
+			if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
+			if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
+			if (tab.classList.contains('bank-transfer-tab')) {
+				if (payNowLink) payNowLink.innerHTML = "Pay Now With Bank Transfer";
+				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Bank Transfer";
+				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Bank Transfer";
+			} else if (tab.classList.contains('credit-card-tab')) {
+				if (payNowLink) payNowLink.innerHTML = "Pay Now With Credit Card";
+				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Credit Card";
+				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Credit Card";
+			} else if (tab.classList.contains('pay-later')) {
+				if (payNowLink) payNowLink.innerHTML = "Pay Now With BNPL";
+				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With BNPL";
+				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With BNPL";
+			}
+			var hasBriefSelection = Boolean($this.appliedBriefEvent || $this.selectedBriefEvent);
+			var hasSuppSelections = false;
+			try {
+				var suppProIdE = document.getElementById('suppProIds');
+				if (suppProIdE && suppProIdE.value) {
+					var parsed = JSON.parse(suppProIdE.value);
+					hasSuppSelections = Array.isArray(parsed) && parsed.length > 0;
 				}
-				const hasBriefSelection = Boolean($this.appliedBriefEvent || $this.selectedBriefEvent);
-				let hasSuppSelections = false;
-				try {
-					const suppProIdE = document.getElementById('suppProIds');
-					if (suppProIdE && suppProIdE.value) {
-						const parsed = JSON.parse(suppProIdE.value);
-						hasSuppSelections = Array.isArray(parsed) && parsed.length > 0;
-					}
-				} catch (error) {
-					hasSuppSelections = false;
-				}
-				if ((hasBriefSelection || hasSuppSelections) && typeof $this.updateOnlyTotalAmount === 'function') {
-					requestAnimationFrame(() => {
-						$this.updateOnlyTotalAmount();
-					});
-				}
-			});
+			} catch (error) {
+				hasSuppSelections = false;
+			}
+			if ((hasBriefSelection || hasSuppSelections) && typeof $this.updateOnlyTotalAmount === 'function') {
+				requestAnimationFrame(function () { $this.updateOnlyTotalAmount(); });
+			}
 		}
+		document.addEventListener('click', function (e) {
+			var tab = e.target.closest('.checkout-tab-link');
+			if (tab) handlePaymentTabClick(tab);
+		}, true);
 	}
 	/**New Code for select old student */
 
