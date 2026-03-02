@@ -757,32 +757,42 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
-		// Update all order summary and total price display elements
-		var orderPriceEl = document.getElementById("online-class-order-price");
-		if (orderPriceEl) orderPriceEl.textContent = displayPrice;
-		var priceOrderDetails = document.querySelectorAll(".price-order-details");
-		for (var i = 0; i < priceOrderDetails.length; i++) {
-			if (priceOrderDetails[i]) priceOrderDetails[i].textContent = displayPrice;
-		}
-		var pCorePrices = document.getElementsByClassName("pCorePrice");
-		for (var j = 0; j < pCorePrices.length; j++) {
-			if (pCorePrices[j]) pCorePrices[j].textContent = displayPrice;
-		}
-		var orderSummary = document.querySelector(".residential-order-summary-3");
-		if (orderSummary) {
-			var inSummary = orderSummary.querySelectorAll(".price-order-details, .pCorePrice, [id='online-class-order-price']");
-			for (var k = 0; k < inSummary.length; k++) {
-				if (inSummary[k]) inSummary[k].textContent = displayPrice;
+		var $this = this;
+		// Run DOM updates after tab switch so Webflow doesn’t overwrite
+		function applyOrderSummaryPrice() {
+			var displayPrice = $this.formatOnlineClassDisplayPrice($this.$onlineClassBasePrice, isCreditCard);
+			// 1) Exact order summary <p>: "dm-sans font-18 right-justified price-order-details" – set $ then price
+			var orderSummary = document.querySelector(".residential-order-summary-3");
+			if (orderSummary) {
+				var priceParas = orderSummary.querySelectorAll("p.price-order-details, p.dm-sans.font-18.right-justified.price-order-details, .price-order-details");
+				for (var i = 0; i < priceParas.length; i++) {
+					if (priceParas[i]) priceParas[i].textContent = displayPrice;
+				}
 			}
-		}
-		var totalGrid = document.querySelector(".total-price-grid-wrapper");
-		if (totalGrid) {
-			var totalPriceInGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
-			for (var m = 0; m < totalPriceInGrid.length; m++) {
-				if (totalPriceInGrid[m]) totalPriceInGrid[m].textContent = displayPrice;
+			// 2) All .price-order-details on page (desktop + mobile copies)
+			var priceOrderDetails = document.querySelectorAll(".price-order-details");
+			for (var j = 0; j < priceOrderDetails.length; j++) {
+				if (priceOrderDetails[j]) priceOrderDetails[j].textContent = displayPrice;
 			}
+			var orderPriceEl = document.getElementById("online-class-order-price");
+			if (orderPriceEl) orderPriceEl.textContent = displayPrice;
+			var pCorePrices = document.getElementsByClassName("pCorePrice");
+			for (var k = 0; k < pCorePrices.length; k++) {
+				if (pCorePrices[k]) pCorePrices[k].textContent = displayPrice;
+			}
+			var totalGrid = document.querySelector(".total-price-grid-wrapper");
+			if (totalGrid) {
+				var inGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
+				for (var m = 0; m < inGrid.length; m++) {
+					if (inGrid[m]) inGrid[m].textContent = displayPrice;
+				}
+			}
+			if (typeof $this.updateOnlyTotalAmount === "function") $this.updateOnlyTotalAmount();
 		}
-		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
+		requestAnimationFrame(function () {
+			applyOrderSummaryPrice();
+			setTimeout(applyOrderSummaryPrice, 50);
+		});
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
