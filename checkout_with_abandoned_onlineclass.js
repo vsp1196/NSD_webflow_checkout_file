@@ -694,8 +694,9 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	$checkoutData = "";
 	$checkOutResponse = false;
 	$initCheckout = null;
-	$selectedProgram = []
-    $isAboundedProgram =false;
+	$selectedProgram = [];
+	$isAboundedProgram = false;
+	$onlineClassBasePrice = null;
 	// Initializes CheckOutWebflow instance and sets up checkout flow
 	constructor(apiBaseUrl, memberData) {
 		super();
@@ -703,7 +704,12 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		this.baseUrl = apiBaseUrl;
 		this.memberData = memberData || {};
 		this.briefsUpsellEnabled = Boolean(this.memberData.isAdmin);
+		if (this.memberData.productType === "online_class" && this.memberData.achAmount != null) {
+			var base = parseFloat(String(this.memberData.achAmount).replace(/,/g, ""));
+			if (!isNaN(base)) this.$onlineClassBasePrice = base;
+		}
 		this.toggleSeasonInfoVisibility();
+		this.hidePayLaterTab();
 		console.log("[CheckOutWebflow] about to call setupClassOfferingCardClicks");
 		this.setupClassOfferingCardClicks();
 		console.log("[CheckOutWebflow] setupClassOfferingCardClicks returned");
@@ -712,6 +718,81 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 		this.renderPortalData();
 		console.log("[CheckOutWebflow] constructor finished");
+	}
+	// Hides the Pay Later (Affirm / BNPL) tab – we do not offer pay later
+	hidePayLaterTab() {
+		var payLaterTab = document.querySelector("a.checkout-tab-link.pay-later, a.pay-later.new-checkout-tab-link, .pay-later.checkout-tab-link");
+		if (payLaterTab) {
+			payLaterTab.style.display = "none";
+		}
+	}
+	// Stripe card fee: (amount + 0.30) / 0.971. Returns formatted $ string for display.
+	formatOnlineClassDisplayPrice(baseAmount, isCreditCard) {
+		if (baseAmount == null || isNaN(baseAmount)) return "$0.00";
+		var amount = isCreditCard ? (baseAmount + 0.30) / 0.971 : baseAmount;
+		return "$" + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	}
+	// Called when payment tab is clicked; updates online-class order price and core_product_price.
+	updateOnlineClassPriceForTab(tabEl) {
+		console.log("[updateOnlineClassPriceForTab] called", "tabEl:", tabEl, "tabEl.className:", tabEl ? tabEl.className : "");
+		var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
+		if (!isOnlineClass) {
+			console.log("[updateOnlineClassPriceForTab] skip – not online class (productType:", (this.memberData || {}).productType, ", isOnlineClassPage:", this.isOnlineClassPage(), ")");
+			return;
+		}
+		if (this.$onlineClassBasePrice == null) {
+			var coreInput = document.getElementById("core_product_price");
+			if (coreInput && coreInput.value) {
+				var parsed = parseFloat(String(coreInput.value).replace(/,/g, ""));
+				if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
+			}
+		}
+		if (this.$onlineClassBasePrice == null) {
+			var fromDetails = document.querySelector(".price-order-details");
+			if (fromDetails && fromDetails.textContent) {
+				var parsed = parseFloat(String(fromDetails.textContent).replace(/[$,]/g, ""));
+				if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
+			}
+		}
+		if (this.$onlineClassBasePrice == null) {
+			console.warn("[updateOnlineClassPriceForTab] skip – no base price (set memberData.achAmount or core_product_price or .price-order-details)");
+			return;
+		}
+		var isCreditCard = tabEl && (tabEl.classList.contains("credit-card-tab") || (tabEl.querySelector && tabEl.querySelector(".credit-card-tab")));
+		var displayPrice = this.formatOnlineClassDisplayPrice(this.$onlineClassBasePrice, !!isCreditCard);
+		var numericAmount = isCreditCard ? (this.$onlineClassBasePrice + 0.30) / 0.971 : this.$onlineClassBasePrice;
+		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		console.log("[updateOnlineClassPriceForTab] base:", this.$onlineClassBasePrice, "isCreditCard:", isCreditCard, "displayPrice:", displayPrice, "formattedValue:", formattedValue);
+		var coreInput = document.getElementById("core_product_price");
+		if (coreInput) coreInput.value = formattedValue;
+		// Update all order summary and total price display elements
+		var orderPriceEl = document.getElementById("online-class-order-price");
+		if (orderPriceEl) { orderPriceEl.textContent = displayPrice; console.log("[updateOnlineClassPriceForTab] updated #online-class-order-price"); }
+		var priceOrderDetails = document.querySelectorAll(".price-order-details");
+		for (var i = 0; i < priceOrderDetails.length; i++) {
+			if (priceOrderDetails[i]) { priceOrderDetails[i].textContent = displayPrice; }
+		}
+		console.log("[updateOnlineClassPriceForTab] updated .price-order-details count:", priceOrderDetails.length);
+		var pCorePrices = document.getElementsByClassName("pCorePrice");
+		for (var j = 0; j < pCorePrices.length; j++) {
+			if (pCorePrices[j]) pCorePrices[j].textContent = displayPrice;
+		}
+		var orderSummary = document.querySelector(".residential-order-summary-3");
+		if (orderSummary) {
+			var inSummary = orderSummary.querySelectorAll(".price-order-details, .pCorePrice, [id='online-class-order-price']");
+			for (var k = 0; k < inSummary.length; k++) {
+				if (inSummary[k]) inSummary[k].textContent = displayPrice;
+			}
+			console.log("[updateOnlineClassPriceForTab] updated .residential-order-summary-3 inner count:", inSummary.length);
+		}
+		var totalGrid = document.querySelector(".total-price-grid-wrapper");
+		if (totalGrid) {
+			var totalPriceInGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
+			for (var m = 0; m < totalPriceInGrid.length; m++) {
+				if (totalPriceInGrid[m]) totalPriceInGrid[m].textContent = displayPrice;
+			}
+		}
+		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
@@ -1778,6 +1859,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// After API response we call the createMakeUpSession method to manipulate student data
 	async renderPortalData(memberId) {
 		try {
+			this.hidePayLaterTab();
 			this.handlePaymentEvent();
 			// Handle previous and next button
 			this.addEventForPrevNaxt();
@@ -1845,10 +1927,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var $this = this;
 		function handleClassOfferingClick(e) {
 			var wrapper = e.target.closest(".checkout_offering-card-wrapper") || e.target.closest("[data-class-offering-id]");
-			if (!wrapper) {
-				console.log("[class-offering click] ignored – no wrapper (target:", e.target, "tagName:", e.target.tagName, "className:", (e.target.className || "").slice(0, 80) + ")");
-				return;
-			}
+			if (!wrapper) return;
 			console.log("[class-offering click] wrapper found", wrapper, "classList:", wrapper.className, "data-class-offering-id:", wrapper.getAttribute("data-class-offering-id"));
 			if (wrapper.classList.contains("full")) {
 				console.log("[class-offering click] skipped – card has class 'full'");
@@ -2017,6 +2096,8 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var tab = allTabs[i];
 			if (!tab) continue;
 			tab.addEventListener('click', function () {
+				console.log("[payment tab click] tab clicked", this.className);
+				$this.updateOnlineClassPriceForTab(this);
 				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
 				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
 				if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
