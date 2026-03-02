@@ -734,12 +734,8 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Called when payment tab is clicked; updates online-class order price and core_product_price.
 	updateOnlineClassPriceForTab(tabEl) {
-		console.log("[updateOnlineClassPriceForTab] called", "tabEl:", tabEl, "tabEl.className:", tabEl ? tabEl.className : "");
 		var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
-		if (!isOnlineClass) {
-			console.log("[updateOnlineClassPriceForTab] skip – not online class (productType:", (this.memberData || {}).productType, ", isOnlineClassPage:", this.isOnlineClassPage(), ")");
-			return;
-		}
+		if (!isOnlineClass) return;
 		if (this.$onlineClassBasePrice == null) {
 			var coreInput = document.getElementById("core_product_price");
 			if (coreInput && coreInput.value) {
@@ -754,25 +750,20 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
 			}
 		}
-		if (this.$onlineClassBasePrice == null) {
-			console.warn("[updateOnlineClassPriceForTab] skip – no base price (set memberData.achAmount or core_product_price or .price-order-details)");
-			return;
-		}
-		var isCreditCard = tabEl && (tabEl.classList.contains("credit-card-tab") || (tabEl.querySelector && tabEl.querySelector(".credit-card-tab")));
-		var displayPrice = this.formatOnlineClassDisplayPrice(this.$onlineClassBasePrice, !!isCreditCard);
+		if (this.$onlineClassBasePrice == null) return;
+		var isCreditCard = !!(tabEl && (tabEl.classList.contains("credit-card-tab") || (tabEl.querySelector && tabEl.querySelector(".credit-card-tab"))));
+		var displayPrice = this.formatOnlineClassDisplayPrice(this.$onlineClassBasePrice, isCreditCard);
 		var numericAmount = isCreditCard ? (this.$onlineClassBasePrice + 0.30) / 0.971 : this.$onlineClassBasePrice;
 		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		console.log("[updateOnlineClassPriceForTab] base:", this.$onlineClassBasePrice, "isCreditCard:", isCreditCard, "displayPrice:", displayPrice, "formattedValue:", formattedValue);
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
 		// Update all order summary and total price display elements
 		var orderPriceEl = document.getElementById("online-class-order-price");
-		if (orderPriceEl) { orderPriceEl.textContent = displayPrice; console.log("[updateOnlineClassPriceForTab] updated #online-class-order-price"); }
+		if (orderPriceEl) orderPriceEl.textContent = displayPrice;
 		var priceOrderDetails = document.querySelectorAll(".price-order-details");
 		for (var i = 0; i < priceOrderDetails.length; i++) {
-			if (priceOrderDetails[i]) { priceOrderDetails[i].textContent = displayPrice; }
+			if (priceOrderDetails[i]) priceOrderDetails[i].textContent = displayPrice;
 		}
-		console.log("[updateOnlineClassPriceForTab] updated .price-order-details count:", priceOrderDetails.length);
 		var pCorePrices = document.getElementsByClassName("pCorePrice");
 		for (var j = 0; j < pCorePrices.length; j++) {
 			if (pCorePrices[j]) pCorePrices[j].textContent = displayPrice;
@@ -783,7 +774,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			for (var k = 0; k < inSummary.length; k++) {
 				if (inSummary[k]) inSummary[k].textContent = displayPrice;
 			}
-			console.log("[updateOnlineClassPriceForTab] updated .residential-order-summary-3 inner count:", inSummary.length);
 		}
 		var totalGrid = document.querySelector(".total-price-grid-wrapper");
 		if (totalGrid) {
@@ -2096,7 +2086,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var tab = allTabs[i];
 			if (!tab) continue;
 			tab.addEventListener('click', function () {
-				console.log("[payment tab click] tab clicked", this.className);
 				$this.updateOnlineClassPriceForTab(this);
 				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
 				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
