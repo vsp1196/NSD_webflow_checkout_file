@@ -758,12 +758,20 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		console.log("[price] displayPrice:", displayPrice, "formattedValue:", formattedValue);
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
-		// Update ALL .price-order-details on the page (visible and hidden copies)
-		var allPriceElements = document.querySelectorAll(".price-order-details");
+		// Update element with class oc-price (dm-sans font-18 right-justified price-order-details oc-price)
+		var ocPriceElements = document.querySelectorAll(".oc-price");
 		var updatedCount = 0;
-		for (var i = 0; i < allPriceElements.length; i++) {
-			allPriceElements[i].textContent = displayPrice;
+		for (var i = 0; i < ocPriceElements.length; i++) {
+			ocPriceElements[i].textContent = displayPrice;
 			updatedCount++;
+		}
+		// Fallback: .price-order-details if no .oc-price found
+		if (updatedCount === 0) {
+			var fallback = document.querySelectorAll(".price-order-details");
+			for (var j = 0; j < fallback.length; j++) {
+				fallback[j].textContent = displayPrice;
+				updatedCount++;
+			}
 		}
 		// Make the order summary block visible: it's inside .online-program.hide – remove .hide so price shows
 		var orderSummaryWrappers = document.querySelectorAll(".residential-order-summary-3");
