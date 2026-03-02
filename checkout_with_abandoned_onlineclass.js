@@ -734,9 +734,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Called when payment tab is clicked; updates online-class order price and core_product_price.
 	updateOnlineClassPriceForTab(tabEl) {
+		console.log("updateOnlineClassPriceForTab");
 		var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
 		if (!isOnlineClass) return;
 		if (this.$onlineClassBasePrice == null) {
+			console.log("flag1");
 			var coreInput = document.getElementById("core_product_price");
 			if (coreInput && coreInput.value) {
 				var parsed = parseFloat(String(coreInput.value).replace(/,/g, ""));
@@ -744,6 +746,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			}
 		}
 		if (this.$onlineClassBasePrice == null) {
+			console.log("flag 2");
 			var fromDetails = document.querySelector(".price-order-details");
 			if (fromDetails && fromDetails.textContent) {
 				var parsed = parseFloat(String(fromDetails.textContent).replace(/[$,]/g, ""));
@@ -757,6 +760,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
+		console.log("displayPrice " + displayPrice);
 		// Update all order summary and total price display elements
 		var orderPriceEl = document.getElementById("online-class-order-price");
 		if (orderPriceEl) orderPriceEl.textContent = displayPrice;
@@ -784,6 +788,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
 		var $this = this;
 		setTimeout(function () {
+			console.log("setTimeout");
 			var dp = $this.formatOnlineClassDisplayPrice($this.$onlineClassBasePrice, isCreditCard);
 			var all = document.querySelectorAll(".price-order-details, .pCorePrice");
 			for (var a = 0; a < all.length; a++) { if (all[a]) all[a].textContent = dp; }
