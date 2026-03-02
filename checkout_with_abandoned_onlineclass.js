@@ -758,23 +758,18 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		console.log("[price] displayPrice:", displayPrice, "formattedValue:", formattedValue);
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
-		// Update <p class="dm-sans font-18 right-justified price-order-details">$</p> inside .residential-order-summary-3
-		var orderSummaryWrappers = document.querySelectorAll(".residential-order-summary-3");
-		console.log("[price] .residential-order-summary-3 found:", orderSummaryWrappers.length, orderSummaryWrappers.length ? "yes" : "NO");
+		// Update ALL .price-order-details on the page (visible and hidden copies)
+		var allPriceElements = document.querySelectorAll(".price-order-details");
 		var updatedCount = 0;
-
-  		document.querySelectorAll(".price-order-details").forEach(el => el.textContent = displayPrice);
+		for (var i = 0; i < allPriceElements.length; i++) {
+			allPriceElements[i].textContent = displayPrice;
+			updatedCount++;
+		}
+		// Make the order summary block visible: it's inside .online-program.hide – remove .hide so price shows
+		var orderSummaryWrappers = document.querySelectorAll(".residential-order-summary-3");
 		for (var o = 0; o < orderSummaryWrappers.length; o++) {
-			var priceP = orderSummaryWrappers[o].querySelector("p.price-order-details");
-			console.log("priceP "+priceP)
-			if (priceP) {
-				priceP.textContent = displayPrice;
-				console.log("priceP.textContent "+priceP.textContent);
-				updatedCount++;
-				console.log("[price] element found and updated, new textContent:", priceP.textContent);
-			} else {
-				console.log("[price] element p.price-order-details NOT found inside wrapper", o);
-			}
+			var onlineProgram = orderSummaryWrappers[o].querySelector(".online-program.hide");
+			if (onlineProgram) onlineProgram.classList.remove("hide");
 		}
 		console.log("[price] total updated:", updatedCount);
 		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
