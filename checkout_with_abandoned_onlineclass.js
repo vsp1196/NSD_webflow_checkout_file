@@ -1418,7 +1418,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (next_page_2) {
-			console.log("next_opage_2");
+			console.log("next_page_2");
 			next_page_2.addEventListener("click", function () {
 
 			if (form.valid()) {
@@ -1498,6 +1498,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Reinitializes payment tab by resetting UI state and hiding payment links
 	reinitializePaymentTab(){
+		console.log("reinitializePaymentTab");
 		var bankTransferTab = document.getElementsByClassName("bank-transfer-tab")[0];
 		if (bankTransferTab) bankTransferTab.click();
 		var payNowLink = document.getElementById('pay-now-link');
@@ -1510,7 +1511,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		this.hideShowDivById('checkout-supplimentary-data-desktop', 'none');
 		this.displayStudentInfo("none");
 		this.hideAndShowWhyFamilies('why-families-div', 'block');
-		this.hideAndShowByClass('rated-debate-banner', 'flex');
 		this.hideShowCartVideo('show');
 		this.activateDiv("checkout_student_details");
 		this.activeBreadCrumb('student-details');
