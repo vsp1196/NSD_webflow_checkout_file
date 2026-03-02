@@ -2082,43 +2082,46 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 
-		function handlePaymentTabClick(tab) {
-			try { $this.updateOnlineClassPriceForTab(tab); } catch (e) { console.warn("updateOnlineClassPriceForTab:", e); }
-			if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
-			if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
-			if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
-			if (tab.classList.contains('bank-transfer-tab')) {
-				if (payNowLink) payNowLink.innerHTML = "Pay Now With Bank Transfer";
-				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Bank Transfer";
-				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Bank Transfer";
-			} else if (tab.classList.contains('credit-card-tab')) {
-				if (payNowLink) payNowLink.innerHTML = "Pay Now With Credit Card";
-				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Credit Card";
-				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Credit Card";
-			} else if (tab.classList.contains('pay-later')) {
-				if (payNowLink) payNowLink.innerHTML = "Pay Now With BNPL";
-				if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With BNPL";
-				if (payNowLink3) payNowLink3.innerHTML = "Pay Now With BNPL";
-			}
-			var hasBriefSelection = Boolean($this.appliedBriefEvent || $this.selectedBriefEvent);
-			var hasSuppSelections = false;
-			try {
-				var suppProIdE = document.getElementById('suppProIds');
-				if (suppProIdE && suppProIdE.value) {
-					var parsed = JSON.parse(suppProIdE.value);
-					hasSuppSelections = Array.isArray(parsed) && parsed.length > 0;
+		var allTabs = document.getElementsByClassName("checkout-tab-link");
+		for (var i = 0; i < allTabs.length; i++) {
+			var tab = allTabs[i];
+			if (!tab) continue;
+			tab.addEventListener('click', function () {
+				$this.updateOnlineClassPriceForTab(this);
+				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
+				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
+				if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "block";
+				if (this.classList.contains('bank-transfer-tab')) {
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With Bank Transfer";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Bank Transfer";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Bank Transfer";
+				} else if (this.classList.contains('credit-card-tab')) {
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With Credit Card";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With Credit Card";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With Credit Card";
+				} else if (this.classList.contains('pay-later')) {
+					if (payNowLink) payNowLink.innerHTML = "Pay Now With BNPL";
+					if (payNowLinkMo) payNowLinkMo.innerHTML = "Pay Now With BNPL";
+					if (payNowLink3) payNowLink3.innerHTML = "Pay Now With BNPL";
 				}
-			} catch (error) {
-				hasSuppSelections = false;
-			}
-			if ((hasBriefSelection || hasSuppSelections) && typeof $this.updateOnlyTotalAmount === 'function') {
-				requestAnimationFrame(function () { $this.updateOnlyTotalAmount(); });
-			}
+				const hasBriefSelection = Boolean($this.appliedBriefEvent || $this.selectedBriefEvent);
+				let hasSuppSelections = false;
+				try {
+					const suppProIdE = document.getElementById('suppProIds');
+					if (suppProIdE && suppProIdE.value) {
+						const parsed = JSON.parse(suppProIdE.value);
+						hasSuppSelections = Array.isArray(parsed) && parsed.length > 0;
+					}
+				} catch (error) {
+					hasSuppSelections = false;
+				}
+				if ((hasBriefSelection || hasSuppSelections) && typeof $this.updateOnlyTotalAmount === 'function') {
+					requestAnimationFrame(() => {
+						$this.updateOnlyTotalAmount();
+					});
+				}
+			});
 		}
-		document.addEventListener('click', function (e) {
-			var tab = e.target.closest('.checkout-tab-link');
-			if (tab) handlePaymentTabClick(tab);
-		}, true);
 	}
 	/**New Code for select old student */
 
