@@ -1476,6 +1476,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (prev_page_2) {
+			console.log("prev_page_2");
 			prev_page_2.addEventListener("click", function (e) {
 				e.preventDefault();
 				$this.reinitializePaymentTab();
