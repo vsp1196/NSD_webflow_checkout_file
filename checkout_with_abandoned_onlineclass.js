@@ -1477,13 +1477,32 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 		if (prev_page_2) {
 			prev_page_2.addEventListener("click", function () {
-				// click on back button reinitialize payment tab
 				$this.reinitializePaymentTab();
-
 				$this.activateDiv("checkout_student_details");
 			});
 		}
-		
+		function goBackToStudentDetails() {
+			$this.reinitializePaymentTab();
+			$this.activateDiv("checkout_student_details");
+		}
+		var backToStudentBtn = document.getElementById("back-to-student-details");
+		if (backToStudentBtn) {
+			backToStudentBtn.addEventListener("click", function (e) {
+				e.preventDefault();
+				goBackToStudentDetails();
+			});
+		} else {
+			var backToStudentLinks = document.querySelectorAll('a.main-button.w-button, a[href="#"].main-button');
+			for (var b = 0; b < backToStudentLinks.length; b++) {
+				if (backToStudentLinks[b].textContent.replace(/\s+/g, ' ').trim().indexOf('Back to student details') !== -1) {
+					backToStudentLinks[b].addEventListener("click", function (e) {
+						e.preventDefault();
+						goBackToStudentDetails();
+					});
+					break;
+				}
+			}
+		}
 
 		let editStudentEl = document.querySelectorAll("[data-student-info='edit']")
 		if (editStudentEl.length > 0) {
