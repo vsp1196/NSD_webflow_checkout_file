@@ -1275,7 +1275,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			//return true;
 			var xhr = new XMLHttpRequest()
 			var $this = this;
-			xhr.open("POST", "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/"+$baseUrl, true)
+			xhr.open("POST",`${_BASE_URL_}/camp/`+$baseUrl, true)
 			xhr.withCredentials = false
 			xhr.send(JSON.stringify(data))
 			xhr.onload = function () {
@@ -2065,7 +2065,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// Calls createCheckoutUrlForOnlineClass API; returns a Promise that resolves with { achUrl, cardUrl, payLaterUrl } for redirect.
 	createCheckoutUrlForOnlineClass(classOfferingId) {
 		console.log("createCheckoutUrlForOnlineClass");
-		var apiUrl = "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/createCheckoutUrlForOnlineClass";
+		var apiUrl = `${_BASE_URL_}/camp/createCheckoutUrlForOnlineClass`;
 		console.log("[Online class API] Calling:", apiUrl, "| class_offering_id:", classOfferingId, "| Check Network tab for this request.");
 		var studentEmailEl = document.getElementById("Student-Email");
 		var studentFirstNameEl = document.getElementById("Student-First-Name");
