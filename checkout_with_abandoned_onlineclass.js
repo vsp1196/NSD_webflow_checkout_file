@@ -2930,28 +2930,36 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			event.preventDefault();
 			event.stopPropagation(); // Prevent event bubbling
 
+			console.log("[close] Clicked", closeLink.className || closeLink.getAttribute("wb-data"), closeLink);
+
 			// First, try getting the modal from `data-target`
 			const targetModalId = closeLink.getAttribute("data-target");
 			let targetModal = targetModalId
 			  ? document.getElementById(targetModalId)
 			  : null;
+			let foundBy = targetModal ? "data-target" : null;
 
 			// If no `data-target`, find the closest parent that is a modal
 			if (!targetModal) {
 			  targetModal = closeLink.closest('[role="dialog"][aria-modal="true"]');
+			  foundBy = targetModal ? "role=dialog" : null;
 			}
 			// Webflow / login modal may not use role="dialog"; try common modal wrappers
 			if (!targetModal) {
 			  targetModal = closeLink.closest('.w-modal');
+			  foundBy = targetModal ? ".w-modal" : null;
 			}
 			if (!targetModal) {
 			  targetModal = closeLink.closest('[class*="modal"]');
+			  foundBy = targetModal ? "[class*=\"modal\"]" : null;
 			}
 			if (!targetModal) {
 			  targetModal = closeLink.closest('.w-overlay');
+			  foundBy = targetModal ? ".w-overlay" : null;
 			}
 
 			if (targetModal) {
+			  console.log("[close] Modal found by", foundBy, "-> closing", targetModal.id || targetModal.className, targetModal);
 			  targetModal.classList.remove("show");
 			  targetModal.style.display = "none";
 			  // If modal sits inside an overlay, hide the overlay too (e.g. Webflow login modal)
@@ -2960,6 +2968,16 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			    overlay.classList.remove("show");
 			    overlay.style.display = "none";
 			  }
+			} else {
+			  console.log("[close] No modal found. Parent chain:", (function () {
+			    var chain = [];
+			    var el = closeLink;
+			    for (var i = 0; i < 8 && el; i++) {
+			      el = el.parentElement;
+			      if (el) chain.push({ tag: el.tagName, id: el.id, class: el.className });
+			    }
+			    return chain;
+			  })());
 			}
 		  });
 		});
