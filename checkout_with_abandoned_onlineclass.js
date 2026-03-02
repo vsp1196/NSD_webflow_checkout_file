@@ -736,23 +736,23 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// Called when payment tab is clicked; updates online-class order price and core_product_price.
 	updateOnlineClassPriceForTab(tabEl) {
 		console.log("in the function updateOnlineClassPriceForTab");
-		var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
-		if (!isOnlineClass) return;
-		if (this.$onlineClassBasePrice == null) {
-			var coreInput = document.getElementById("core_product_price");
-			if (coreInput && coreInput.value) {
-				var parsed = parseFloat(String(coreInput.value).replace(/,/g, ""));
-				if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
-			}
-		}
-		if (this.$onlineClassBasePrice == null) {
-			var fromDetails = document.querySelector(".price-order-details");
-			if (fromDetails && fromDetails.textContent) {
-				var parsed = parseFloat(String(fromDetails.textContent).replace(/[$,]/g, ""));
-				if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
-			}
-		}
-		if (this.$onlineClassBasePrice == null) return;
+		// var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
+		// if (!isOnlineClass) return;
+		// if (this.$onlineClassBasePrice == null) {
+		// 	var coreInput = document.getElementById("core_product_price");
+		// 	if (coreInput && coreInput.value) {
+		// 		var parsed = parseFloat(String(coreInput.value).replace(/,/g, ""));
+		// 		if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
+		// 	}
+		// }
+		// if (this.$onlineClassBasePrice == null) {
+		// 	var fromDetails = document.querySelector(".price-order-details");
+		// 	if (fromDetails && fromDetails.textContent) {
+		// 		var parsed = parseFloat(String(fromDetails.textContent).replace(/[$,]/g, ""));
+		// 		if (!isNaN(parsed)) this.$onlineClassBasePrice = parsed;
+		// 	}
+		// }
+		// if (this.$onlineClassBasePrice == null) return;
 		console.log("this.$onlineClassBasePrice "+this.$onlineClassBasePrice);
 		var isCreditCard = !!(tabEl && (tabEl.classList.contains("credit-card-tab") || (tabEl.querySelector && tabEl.querySelector(".credit-card-tab"))));
 		var displayPrice = this.formatOnlineClassDisplayPrice(this.$onlineClassBasePrice, isCreditCard);
