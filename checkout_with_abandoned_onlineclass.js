@@ -697,6 +697,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	$selectedProgram = [];
 	$isAboundedProgram = false;
 	$onlineClassBasePrice = null;
+	$selectedClassOfferingId = null;
 	// Initializes CheckOutWebflow instance and sets up checkout flow
 	constructor(apiBaseUrl, memberData) {
 		super();
@@ -1553,8 +1554,23 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					window.location.href = $this.$checkoutData.achUrl;
 					return;
 				}
-				if ($this.isOnlineClassPage() && (!$this.$checkoutData || !$this.$checkoutData.achUrl)) {
-					alert("Please select a class offering first.");
+				if ($this.isOnlineClassPage()) {
+					if (!$this.$selectedClassOfferingId) {
+						alert("Please select a class offering first.");
+						return;
+					}
+					ach_payment.innerHTML = "Processing...";
+					ach_payment.disabled = true;
+					$this.createCheckoutUrlForOnlineClass($this.$selectedClassOfferingId)
+						.then(function (urls) {
+							var goUrl = (urls && urls.achUrl) ? urls.achUrl : ($this.$checkoutData && $this.$checkoutData.achUrl) ? $this.$checkoutData.achUrl : null;
+							if (goUrl) window.location.href = goUrl;
+						})
+						.catch(function (err) {
+							ach_payment.innerHTML = "Checkout";
+							ach_payment.disabled = false;
+							alert("Something went wrong. Please try again.");
+						});
 					return;
 				}
 				var myInterval1 = setInterval(function () {
@@ -1565,7 +1581,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 						window.location.href = $this.$checkoutData.achUrl;
 						return;
 					}
-					if ($this.isOnlineClassPage()) return;
 					var initialCheckout = $this.initializeStripePayment('us_bank_account', $this.$checkoutData && $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
 					if (initialCheckout) {
 						initialCheckout.then(function () {
@@ -1583,8 +1598,23 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					window.location.href = $this.$checkoutData.cardUrl;
 					return;
 				}
-				if ($this.isOnlineClassPage() && (!$this.$checkoutData || !$this.$checkoutData.cardUrl)) {
-					alert("Please select a class offering first.");
+				if ($this.isOnlineClassPage()) {
+					if (!$this.$selectedClassOfferingId) {
+						alert("Please select a class offering first.");
+						return;
+					}
+					card_payment.innerHTML = "Processing...";
+					card_payment.disabled = true;
+					$this.createCheckoutUrlForOnlineClass($this.$selectedClassOfferingId)
+						.then(function (urls) {
+							var goUrl = (urls && urls.cardUrl) ? urls.cardUrl : ($this.$checkoutData && $this.$checkoutData.cardUrl) ? $this.$checkoutData.cardUrl : null;
+							if (goUrl) window.location.href = goUrl;
+						})
+						.catch(function (err) {
+							card_payment.innerHTML = "Checkout";
+							card_payment.disabled = false;
+							alert("Something went wrong. Please try again.");
+						});
 					return;
 				}
 				var myInterval3 = setInterval(function () {
@@ -1595,7 +1625,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 						window.location.href = $this.$checkoutData.cardUrl;
 						return;
 					}
-					if ($this.isOnlineClassPage()) return;
 					var initialCheckout = $this.initializeStripePayment('card', $this.$checkoutData && $this.$checkoutData.checkoutId, "updateStripeCheckoutDb");
 					if (initialCheckout) {
 						initialCheckout.then(function () {
@@ -1937,39 +1966,27 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 
-	// Online class: store selected class offering and call createCheckoutUrlForOnlineClass API
+	// Online class: on card click only store selected class_offering_id (API is called when payment method is selected in eventForPayNowBtn)
 	setupClassOfferingCardClicks() {
-		console.log("[setupClassOfferingCardClicks] called");
 		var $this = this;
 		function handleClassOfferingClick(e) {
 			var wrapper = e.target.closest(".checkout_offering-card-wrapper") || e.target.closest("[data-class-offering-id]");
 			if (!wrapper) return;
-			console.log("[class-offering click] wrapper found", wrapper, "classList:", wrapper.className, "data-class-offering-id:", wrapper.getAttribute("data-class-offering-id"));
-			if (wrapper.classList.contains("full")) {
-				console.log("[class-offering click] skipped – card has class 'full'");
-				return;
-			}
+			if (wrapper.classList.contains("full")) return;
 			var classOfferingId = wrapper.getAttribute("data-class-offering-id");
-			if (!classOfferingId) {
-				console.log("[class-offering click] skipped – no data-class-offering-id on wrapper");
-				return;
-			}
+			if (!classOfferingId) return;
 			$this.$selectedClassOfferingId = classOfferingId;
 			var container = wrapper.closest(".checkout_offering-grid-container");
 			if (container) {
 				container.querySelectorAll(".checkout_offering-card-wrapper, [data-class-offering-id]").forEach(function (el) { el.classList.remove("selected"); });
 				wrapper.classList.add("selected");
 			}
-			console.log("[class-offering click] calling createCheckoutUrlForOnlineClass for class_offering_id:", classOfferingId);
-			$this.createCheckoutUrlForOnlineClass(classOfferingId);
 		}
 		document.addEventListener("click", handleClassOfferingClick, true);
-		console.log("[setupClassOfferingCardClicks] document click listener attached (capture=true)");
 	}
 
-	// Calls createCheckoutUrlForOnlineClass API with dynamic email, memberId, class_offering_id, student from form; cancelUrl with returnType=Back
+	// Calls createCheckoutUrlForOnlineClass API; returns a Promise that resolves with { achUrl, cardUrl, payLaterUrl } for redirect.
 	createCheckoutUrlForOnlineClass(classOfferingId) {
-		console.log("[createCheckoutUrlForOnlineClass] entered with classOfferingId:", classOfferingId);
 		var studentEmailEl = document.getElementById("Student-Email");
 		var studentFirstNameEl = document.getElementById("Student-First-Name");
 		var studentLastNameEl = document.getElementById("Student-Last-Name");
@@ -1980,14 +1997,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var studentEmail = studentEmailEl ? studentEmailEl.value.trim().toLowerCase() : "";
 		var cancelUrl = new URL(window.location.href);
 		cancelUrl.searchParams.set("returnType", "Back");
-		if (!email || !memberId || !classOfferingId || !studentEmail) {
-			console.warn("[createCheckoutUrlForOnlineClass] missing data (request will still send):", {
-				email: email ? "set" : "MISSING",
-				memberId: memberId ? "set" : "MISSING",
-				class_offering_id: classOfferingId || "MISSING",
-				"student.email": studentEmail ? "set" : "MISSING"
-			});
-		}
 		var body = {
 			email: email,
 			memberId: memberId,
@@ -2004,35 +2013,23 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		};
 		var apiUrl = "https://3yf0irxn2c.execute-api.us-west-1.amazonaws.com/dev/camp/createCheckoutUrlForOnlineClass";
 		var $this = this;
-		console.log("[createCheckoutUrlForOnlineClass] request URL:", apiUrl);
-		console.log("[createCheckoutUrlForOnlineClass] request body:", body);
-		console.log("[createCheckoutUrlForOnlineClass] sending fetch now");
-		fetch(apiUrl, {
+		return fetch(apiUrl, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(body)
 		})
 			.then(function (res) {
-				console.log("[createCheckoutUrlForOnlineClass] fetch responded status:", res.status);
-				var contentType = res.headers.get("content-type");
-				var clone = res.clone();
 				if (!res.ok) {
-					clone.text().then(function (text) {
-						console.warn("[createCheckoutUrlForOnlineClass] response " + res.status + ":", text);
-						try { console.warn("createCheckoutUrlForOnlineClass response JSON:", JSON.parse(text)); } catch (e) {}
-					});
-					return res.json().catch(function () { return null; });
+					return res.json().catch(function () { return null; }).then(function (data) { throw new Error(data && data.message ? data.message : "API error"); });
 				}
 				return res.json();
 			})
 			.then(function (data) {
-				console.log("[createCheckoutUrlForOnlineClass] response data:", data);
-				if (!data) return;
+				if (!data) throw new Error("No response");
 				var achUrl = data.achUrl || "";
 				var cardUrl = data.cardUrl || "";
 				var payLaterUrl = data.payLaterUrl || "";
 				if (achUrl || cardUrl || payLaterUrl) {
-					console.log("[createCheckoutUrlForOnlineClass] URLs – achUrl:", achUrl, "cardUrl:", cardUrl, "payLaterUrl:", payLaterUrl);
 					$this.$checkoutData = {
 						achUrl: achUrl,
 						cardUrl: cardUrl,
@@ -2045,11 +2042,18 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					var merged = existing ? JSON.parse(existing) : {};
 					merged.checkoutData = { achUrl: achUrl, cardUrl: cardUrl, payLaterUrl: payLaterUrl };
 					localStorage.setItem("checkOutData", JSON.stringify(merged));
-				} else if (data.checkoutUrl || data.url) {
-					window.location.href = data.checkoutUrl || data.url;
+					return { achUrl: achUrl, cardUrl: cardUrl, payLaterUrl: payLaterUrl };
 				}
+				if (data.checkoutUrl || data.url) {
+					window.location.href = data.checkoutUrl || data.url;
+					return {};
+				}
+				throw new Error("No checkout URLs in response");
 			})
-			.catch(function (err) { console.error("[createCheckoutUrlForOnlineClass] fetch error:", err); });
+			.catch(function (err) {
+				console.error("[createCheckoutUrlForOnlineClass] error:", err);
+				return Promise.reject(err);
+			});
 	}
 
 	// Updates or creates hidden inputs (achUrlSession, cardUrlSession, payLaterUrlSession) used for payment redirects
@@ -2112,6 +2116,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var tab = allTabs[i];
 			if (!tab) continue;
 			tab.addEventListener('click', function () {
+				console.log("updateOnlineClassPriceForTab eventForPayNowBtn");
 				$this.updateOnlineClassPriceForTab(this);
 				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
 				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
