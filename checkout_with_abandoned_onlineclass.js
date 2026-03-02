@@ -64,7 +64,6 @@ class BriefsUpsellModal {
 	}
 	// Shows the briefs upsell modal if user is admin and brief event not already added
 	showBriefsUpsellModal() {
-		console.log("showBriefsUpsellModal");
 		if (!this.memberData || !this.memberData.isAdmin) {
 			return;
 		}
@@ -80,7 +79,6 @@ class BriefsUpsellModal {
 	}
 	// Hides the briefs upsell modal and updates aria attributes
 	hideBriefsUpsellModal() {
-		console.log("hideBriefsUpsellModal");
 		if (!this.modal || !this.modalBg) {
 			return;
 		}
@@ -90,7 +88,6 @@ class BriefsUpsellModal {
 	}
 	// Binds event handlers for closing the briefs modal via close button or background click
 	bindBriefModalCloseEvents() {
-		console.log("bindBriefModalCloseEvents");
 		if (this.modalClose) {
 			this.modalClose.addEventListener('click', (event) => {
 				event.preventDefault();
@@ -103,8 +100,6 @@ class BriefsUpsellModal {
 	}
 	// Binds event handlers to brief CTA buttons for adding brief events to cart
 	bindBriefCtaButton() {
-		console.log("bindBriefCtaButton");
-		console.log("Binding brief CTA buttons");
 		if (!this.briefCtaButtons || !this.briefCtaButtons.length) {
 			//console.log("No brief CTA buttons found to bind");
 			return;
@@ -144,7 +139,6 @@ class BriefsUpsellModal {
 	}
 	// Initializes the briefs upsell modal by caching elements and fetching brief events
 	initializeBriefsUpsellModal() {
-		console.log("initializeBriefsUpsellModal");
 		if (!this.memberData || !this.memberData.isAdmin) {
 			return;
 		}
@@ -156,7 +150,6 @@ class BriefsUpsellModal {
 	}
 	// Caches brief modal DOM elements and stores default button styles
 	cacheBriefModalElements() {
-		console.log("cacheBriefModalElements");
 		this.briefEventsContainers = Array.from(document.querySelectorAll('[data-cart="briefEvents-container"]'));
 		this.briefEventsContainer = this.briefEventsContainers[0] || null;
 		this.setSelectedBriefEventsWrappers();
@@ -186,13 +179,11 @@ class BriefsUpsellModal {
 	}
 	// Sets the selected brief events wrapper elements from DOM
 	setSelectedBriefEventsWrappers() {
-		console.log("setSelectedBriefEventsWrappers");
 		this.selectedBriefEventsWrappers = Array.from(document.querySelectorAll('.selected_brief_events'));
 		this.selectedBriefEventsWrapper = this.selectedBriefEventsWrappers[0] || null;
 	}
 	// Returns array of selected brief events wrapper elements
 	getSelectedBriefEventsWrappers() {
-		console.log("getSelectedBriefEventsWrappers");
 		if (Array.isArray(this.selectedBriefEventsWrappers) && this.selectedBriefEventsWrappers.length) {
 			return this.selectedBriefEventsWrappers;
 		}
@@ -200,7 +191,6 @@ class BriefsUpsellModal {
 	}
 	// Fetches brief events from API and renders them in the modal
 	async fetchBriefEvents() {
-		 console.log("fetchBriefEvents");
 		if (typeof this.fetchData !== 'function') {
 			return;
 		}
@@ -216,13 +206,11 @@ class BriefsUpsellModal {
 			this.debateEventId = response.debateEventId;
 			this.renderBriefEvents();
 		} catch (error) {
-			console.error('Error fetching brief events:', error);
 			this.renderBriefEventsError();
 		}
 	}
 	// Renders brief events as cards in the modal containers
 	renderBriefEvents() {
-		console.log("renderBriefEvents");
 		const containers = this.getBriefEventsContainers();
 
 		if (!containers.length) {
@@ -257,7 +245,6 @@ class BriefsUpsellModal {
 	}
 	// Renders error message when brief events fail to load
 	renderBriefEventsError() {
-		console.log("renderBriefEventsError");
 		const containers = this.getBriefEventsContainers();
 		if (!containers.length) {
 			return;
@@ -270,7 +257,6 @@ class BriefsUpsellModal {
 	}
 	// Filters brief event elements to show only the one matching debateEventId
 	filterBriefEventsByDebateId() {
-		console.log("filterBriefEventsByDebateId");
 		if (!this.debateEventId) {
 			//console.log("No debateEventId provided, skipping brief event filtering");
 			return;
@@ -289,7 +275,6 @@ class BriefsUpsellModal {
 	}
 	// Builds HTML markup for a single brief event card
 	buildBriefEventMarkup(briefEvent) {
-		console.log("buildBriefEventMarkup");
 		const price = this.formatCurrency(briefEvent.price);
 		//console.log("Price", price);
 		const savedAmount = parseFloat(briefEvent.saved_amount || 0);
@@ -311,7 +296,6 @@ class BriefsUpsellModal {
 	}
 	// Formats a numeric amount as currency string with dollar sign
 	formatCurrency(amount) {
-		console.log("formatCurrency");
 		const numericAmount = parseFloat(typeof amount !== 'undefined' && amount !== null ? amount : 0) || 0;
 		const formatted = this.numberWithCommas
 			? this.numberWithCommas(numericAmount.toFixed(2))
@@ -320,7 +304,6 @@ class BriefsUpsellModal {
 	}
 	// Binds click event handlers to brief event cards for selection
 	bindBriefEventCards() {
-		console.log("bindBriefEventCards");
 		const containers = this.getBriefEventsContainers();
 		if (!containers.length) {
 			return;
@@ -341,7 +324,6 @@ class BriefsUpsellModal {
 	}
 	// Selects a brief event by ID and updates UI state
 	selectBriefEvent(eventId) {
-		console.log("selectBriefEvent");
 		const selected = this.briefEvents.find(
 			(event) => String(event.eventId) === String(eventId)
 		);
@@ -361,7 +343,6 @@ class BriefsUpsellModal {
 	}
 	// Updates the total amount when a brief event is selected or changed
 	updateBriefAmount(nextSelection) {
-		console.log("updateBriefAmount");
 		const totalAmountInput = document.getElementById('totalAmount');
 		if (!totalAmountInput) {
 			return;
@@ -380,7 +361,6 @@ class BriefsUpsellModal {
 	}
 	// Synchronizes brief event card visual state with current selection
 	syncBriefCardsWithSelection() {
-		console.log("syncBriefCardsWithSelection");
 		const containers = this.getBriefEventsContainers();
 		if (!containers.length) {
 			return;
@@ -603,7 +583,6 @@ class BriefsUpsellModal {
 				this.briefSelectionFromStorage = parsed.briefEvent;
 			}
 		} catch (error) {
-			console.warn('Unable to parse stored brief selection:', error);
 		}
 	}
 	// Persists brief selection to localStorage and checkout data
@@ -622,7 +601,6 @@ class BriefsUpsellModal {
 				const merged = existing ? { ...JSON.parse(existing), ...payload } : payload;
 				localStorage.setItem('checkOutData', JSON.stringify(merged));
 			} catch (error) {
-				console.warn('Unable to persist brief selection:', error);
 			}
 		}
 		this.briefSelectionFromStorage = selection || null;
@@ -717,7 +695,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// Initializes CheckOutWebflow instance and sets up checkout flow
 	constructor(apiBaseUrl, memberData) {
 		super();
-		console.log("[CheckOutWebflow] constructor called");
 		this.baseUrl = apiBaseUrl;
 		this.memberData = memberData || {};
 		this.briefsUpsellEnabled = Boolean(this.memberData.isAdmin);
@@ -727,18 +704,14 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 		this.toggleSeasonInfoVisibility();
 		this.hidePayLaterTab();
-		console.log("[CheckOutWebflow] about to call setupClassOfferingCardClicks");
 		this.setupClassOfferingCardClicks();
-		console.log("[CheckOutWebflow] setupClassOfferingCardClicks returned");
 		if (this.briefsUpsellEnabled) {
 			this.initializeBriefsUpsellModal();
 		}
 		this.renderPortalData();
-		console.log("[CheckOutWebflow] constructor finished");
 	}
 	// Hides the Pay Later (Affirm / BNPL) tab – we do not offer pay later
 	hidePayLaterTab() {
-		console.log("hidePayLaterTab");
 		var payLaterTab = document.querySelector("a.checkout-tab-link.pay-later, a.pay-later.new-checkout-tab-link, .pay-later.checkout-tab-link");
 		if (payLaterTab) {
 			payLaterTab.style.display = "none";
@@ -746,14 +719,12 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Stripe card fee: (amount + 0.30) / 0.971. Returns formatted $ string for display.
 	formatOnlineClassDisplayPrice(baseAmount, isCreditCard) {
-		console.log("formatOnlineClassDisplayPrice");
 		if (baseAmount == null || isNaN(baseAmount)) return "$0.00";
 		var amount = isCreditCard ? (baseAmount + 0.30) / 0.971 : baseAmount;
 		return "$" + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 	// Called when payment tab is clicked; updates online-class order price and core_product_price.
 	updateOnlineClassPriceForTab(tabEl) {
-		console.log("updateOnlineClassPriceForTab");
 		var isOnlineClass = (this.memberData || {}).productType === "online_class" || this.isOnlineClassPage();
 		if (!isOnlineClass) return;
 		if (this.$onlineClassBasePrice == null) {
@@ -799,23 +770,18 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var displayPrice = this.formatOnlineClassDisplayPrice(this.$onlineClassBasePrice, isCreditCard);
 		var numericAmount = isCreditCard ? (this.$onlineClassBasePrice + 0.30) / 0.971 : this.$onlineClassBasePrice;
 		var formattedValue = Number(numericAmount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		console.log("[price] displayPrice:", displayPrice, "formattedValue:", formattedValue);
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
 		var $this = this;
 		function setOcPrice() {
 			var el = document.querySelector(".oc-price") || document.querySelector("[class*='oc-price']");
-			console.log("[price] .oc-price element found:", !!el, el ? el.className : "none");
 			if (el) {
 				el.textContent = displayPrice;
-				console.log("[price] .oc-price updated to:", displayPrice);
 			} else {
 				var fallback = document.querySelector(".price-order-details");
 				if (fallback) {
 					fallback.textContent = displayPrice;
-					console.log("[price] fallback .price-order-details updated to:", displayPrice);
 				} else {
-					console.log("[price] no .oc-price or .price-order-details found");
 				}
 			}
 		}
@@ -832,7 +798,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
-		console.log("toggleSeasonInfoVisibility");
 		const wrappers = document.querySelectorAll('.setup-season-info-wrapper');
 		if (!wrappers || !wrappers.length) {
 			return;
@@ -852,7 +817,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Creates HTML markup for supplementary program tags
 	createTags(suppData) {
-		console.log("createTags");
 		var html = "";
 
 		if (!suppData.tags) return html;
@@ -868,7 +832,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	// Creates DOM element for a single supplementary program cart item
 	createCartList(suppData) {
-		console.log("createCartList");
 		var coreProductContainer = creEl("div", "core-product-container");
 		var $this = this;
 
@@ -955,13 +918,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Formats a number with comma separators for thousands
 	numberWithCommas(x) {
-		console.log("numberWithCommas");
 		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 	}
 
 	// Displays selected supplementary programs in desktop and mobile sidebars
 	displaySelectedSuppProgram(selectedIds) {
-		console.log("displaySelectedSuppProgram");
 		var selectedSuppPro = document.getElementById("selected_supplimentary_program");
 		var selectedSuppProMob = document.getElementById("selected_supplimentary_program_mob");
 		selectedSuppPro.innerHTML = "";
@@ -971,7 +932,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Displays selected supplementary programs list in the specified container
 	displaySelectedSuppPrograms(suppIds, selectedSuppPro) {
-		console.log("displaySelectedSuppPrograms");
 		var $this = this;
 		// Filtering selected Supplementary program id from all Supplementary program data
 		var selectedData = this.$suppPro.filter((item) =>
@@ -1028,7 +988,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Removes a supplementary program from selection and updates UI
 	removeSuppProgram(suppId) {
-		console.log("removeSuppProgram");
 		var suppProIdE = document.getElementById("suppProIds");
 		var arrayIds = JSON.parse(suppProIdE.value);
 		if (arrayIds.length > 0) {
@@ -1070,7 +1029,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Updates total price display including core product and supplementary programs
 	updateOnlyTotalAmount() {
-		console.log("updateOnlyTotalAmount");
 		// Webflow total price dom element
 		var totalPriceText = document.getElementById("totalPrice");
 		// core product price for resdential, commuter and online
@@ -1092,7 +1050,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Updates total amount when supplementary program checkbox is toggled
 	updateAmount(checkEvent, amount) {
-		console.log("updateAmount");
 		// Sum of supplementary program price
 		var totalAmountInput = document.getElementById("totalAmount");
 		// core product price for resdential, commuter and online
@@ -1148,7 +1105,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Refreshes total price visibility based on selected supplementary programs and brief events
 	refreshTotalPriceVisibility(selectedIds) {
-		console.log("refreshTotalPriceVisibility");
 		let suppIds = [];
 		if (Array.isArray(selectedIds)) {
 			suppIds = selectedIds;
@@ -1170,7 +1126,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Toggles visibility of total price divs based on whether items are selected
 	toggleTotalPriceVisibility(shouldShow) {
-		console.log("toggleTotalPriceVisibility");
 		const totalPriceDiv = document.getElementById("totalPriceDiv");
 		if (totalPriceDiv) {
 			if (shouldShow) {
@@ -1190,7 +1145,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Fetches data from the API endpoint
 	async fetchData(endpoint) {
-		console.log("fetchData");
 		try {
 			const response = await fetch(`${this.baseUrl}${endpoint}`);
 			if (!response.ok) {
@@ -1199,18 +1153,15 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			const data = await response.json();
 			return data;
 		} catch (error) {
-			console.error("Error fetching data:", error);
 			throw error;
 		}
 	}
 	// Returns true when on online class checkout (has class offering cards). Use createCheckoutUrlForOnlineClass, NOT createCheckoutUrlsByProgram.
 	isOnlineClassPage() {
-		console.log("isOnlineClassPage");
 		return !!(document.querySelector(".checkout_offering-grid-container") || document.querySelector("[data-class-offering-id]"));
 	}
 	// Creates Stripe checkout URLs for ACH, card, and pay later payment methods
 	initializeStripePayment(paymentType = "", checkoutID = "", $baseUrl="createCheckoutUrlForOnlineClass") {
-		console.log("initializeStripePayment");
 		return new Promise((resolve, reject) => {
 			if (this.isOnlineClassPage() && ($baseUrl === "createCheckoutUrlsByProgram" || $baseUrl === "updateStripeCheckoutDb")) {
 				reject(new Error("Online class: use createCheckoutUrlForOnlineClass only"));
@@ -1320,7 +1271,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	 */
 	// Adds checkout session IDs to hidden form fields for automation testing
 	addSessionId() {
-		console.log("addSessionId");
 		var localCheckOutData = localStorage.getItem('checkOutData')
 		if (localCheckOutData != undefined) {
 			var localCheckOutData = JSON.parse(localCheckOutData);
@@ -1341,7 +1291,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Formats program date string to YYYY-MM-DD HH:MM:SS.MICROSECONDS format
 	getProgramFormattedDate($date) {
-		console.log("getProgramFormattedDate");
 		if($date == undefined){
 			return false;
 		}	
@@ -1360,7 +1309,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Updates student details in database and stores checkout data in localStorage
 	updateStudentDetails(checkoutUrl) {
-		console.log("updateStudentDetails");
 		var $this = this;
 		return new Promise((resolve, reject) => {
 			var studentFirstName = document.getElementById('Student-First-Name');
@@ -1431,7 +1379,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Activates the specified checkout tab and syncs the stepper (content panel + breadcrumb stay in sync)
 	activateDiv(divId) {
-		console.log("activateDiv");
 		var divIdToStepId = { checkout_program: 'program', checkout_student_details: 'student-details', checkout_payment: 'pay-deposite' };
 		var divIds = ["checkout_program", "checkout_student_details", "checkout_payment"];
 		divIds.forEach(function (id) {
@@ -1462,14 +1409,12 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		if (divId === 'checkout_payment' && typeof this.updateOnlineClassPriceForTab === 'function' && this.isOnlineClassPage()) {
 			var activeTab = document.querySelector('.checkout-tab-link.w--current') || document.querySelector('.checkout-tab-link');
 			if (activeTab) {
-				console.log("updateOnlineClassPriceForTab eventForPayNowBtn (payment step shown)");
 				this.updateOnlineClassPriceForTab(activeTab);
 			}
 		}
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
 	addEventForPrevNaxt() {
-		console.log("addEventForPrevNext");
 		var initialCheckout = null
 		var next_page_1 = document.getElementById("next_page_1");
 		var next_page_2 = document.getElementById("next_page_2");
@@ -1485,7 +1430,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (next_page_2) {
-			console.log("next_page_2");
 			next_page_2.addEventListener("click", function () {
 
 			if (form.valid()) {
@@ -1543,7 +1487,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (prev_page_2) {
-			console.log("prev_page_2");
 			prev_page_2.addEventListener("click", function (e) {
 				e.preventDefault();
 				$this.reinitializePaymentTab();
@@ -1565,7 +1508,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Reinitializes payment tab by resetting UI state and hiding payment links
 	reinitializePaymentTab(){
-		console.log("reinitializePaymentTab");
 		var bankTransferTab = document.getElementsByClassName("bank-transfer-tab")[0];
 		if (bankTransferTab) bankTransferTab.click();
 		var payNowLink = document.getElementById('pay-now-link');
@@ -1593,7 +1535,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// validating duplicate email
 	checkUniqueStudentEmail() {
-		console.log("checkUniqueStudentEmail");
 		var sENameE = document.getElementById("Student-Email");
 		var sEmail = sENameE.value;
 		sEmail = sEmail.replace(/\s/g, "");
@@ -1609,7 +1550,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Sets up event handlers for payment method buttons (ACH, card, pay later)
 	handlePaymentEvent() {
-		console.log("handlePaymentEvent");
 		var ach_payment = document.getElementById("ach_payment");
 		var card_payment = document.getElementById("card_payment");
 		var paylater_payment = document.getElementById("paylater_payment");
@@ -1736,7 +1676,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Updates student form fields with data from localStorage for supplementary program purchase
 	updateSuppData() {
-		console.log("updateSuppData");
 		var studentFirstName = document.getElementById("Student-First-Name");
 		var studentLastName = document.getElementById("Student-Last-Name");
 		var studentEmail = document.getElementById("Student-Email");
@@ -1773,7 +1712,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// update default checkbox checked always
 	updateDefaultCheckbox() {
-		console.log("updateDefaultCheckbox");
 		var dCheckbox = document.getElementById("checkbox");
 		dCheckbox.setAttribute("disabled", true);
 		// Update default price
@@ -1784,7 +1722,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 	isWithinAWeek(dateString) {
-		console.log("isWithinAWeek");
 		const date = new Date(dateString);
 		const now = new Date();
 		const oneWeekAgo = new Date();
@@ -1792,7 +1729,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		return date >= oneWeekAgo && date <= now;
 	}
 	checkBackButtonEvent() {
-		console.log("checkBackButtonEvent");
 		var query = window.location.search;
 		var urlPar = new URLSearchParams(query);
 		var returnType = urlPar.get("returnType");
@@ -1811,7 +1747,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Setup back stripe button and browser back button
 	setUpBackButtonTab() {
-		console.log("setUpBackButtonTab");
 		var $this = this;
 		var checkoutJson = localStorage.getItem("checkOutData");
 		if (checkoutJson != undefined) {
@@ -1920,7 +1855,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Store student basic forms data
 	storeBasicData() {
-		console.log("storeBasicData");
 		var studentFirstName = document.getElementById("Student-First-Name");
 		var studentLastName = document.getElementById("Student-Last-Name");
 		var studentEmail = document.getElementById("Student-Email");
@@ -1942,7 +1876,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Update Basic data after reload
 	updateBasicData() {
-		console.log("updateBasicData");
 		var checkoutJson = localStorage.getItem("checkOutBasicData");
 		if (checkoutJson != undefined) {
 			var paymentData = JSON.parse(checkoutJson);
@@ -1978,7 +1911,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// After API response we call the createMakeUpSession method to manipulate student data
 	async renderPortalData(memberId) {
-		console.log("renderPortalData");
 		try {
 			this.hidePayLaterTab();
 			this.handlePaymentEvent();
@@ -2036,15 +1968,13 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			spinner.style.display = "none";
 			this.displaySupplementaryProgram();
 			this.updateOldStudentList();
-			try { this.eventForPayNowBtn(); } catch (e) { console.warn("eventForPayNowBtn:", e); }
+			try { this.eventForPayNowBtn(); } catch (e) { }
 		} catch (error) {
-			console.error("Error rendering random number:", error);
 		}
 	}
 
 	// Online class: on card click only store selected class_offering_id (API is called when payment method is selected in eventForPayNowBtn)
 	setupClassOfferingCardClicks() {
-		console.log("setupClassOfferingCardClicks");
 		var $this = this;
 		function handleClassOfferingClick(e) {
 			var wrapper = e.target.closest(".checkout_offering-card-wrapper") || e.target.closest("[data-class-offering-id]");
@@ -2064,9 +1994,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	// Calls createCheckoutUrlForOnlineClass API; returns a Promise that resolves with { achUrl, cardUrl, payLaterUrl } for redirect.
 	createCheckoutUrlForOnlineClass(classOfferingId) {
-		console.log("createCheckoutUrlForOnlineClass");
 		var apiUrl = `${_BASE_URL_}/camp/createCheckoutUrlForOnlineClass`;
-		console.log("[Online class API] Calling:", apiUrl, "| class_offering_id:", classOfferingId, "| Check Network tab for this request.");
 		var studentEmailEl = document.getElementById("Student-Email");
 		var studentFirstNameEl = document.getElementById("Student-First-Name");
 		var studentLastNameEl = document.getElementById("Student-Last-Name");
@@ -2109,7 +2037,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				var cardUrl = data.cardUrl || "";
 				var payLaterUrl = data.payLaterUrl || "";
 				if (achUrl || cardUrl || payLaterUrl) {
-					console.log("[Online class API] Success. Redirect URLs received (achUrl, cardUrl, payLaterUrl).");
 					$this.$checkoutData = {
 						achUrl: achUrl,
 						cardUrl: cardUrl,
@@ -2131,14 +2058,12 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				throw new Error("No checkout URLs in response");
 			})
 			.catch(function (err) {
-				console.error("[Online class API] Failed:", err.message || err);
 				return Promise.reject(err);
 			});
 	}
 
 	// Updates or creates hidden inputs (achUrlSession, cardUrlSession, payLaterUrlSession) used for payment redirects
 	updateCheckoutUrlHiddenInputs(achUrl, cardUrl, payLaterUrl) {
-		console.log("updateCheckoutUrlHiddenInputs");
 		var ids = [
 			{ id: "achUrlSession", value: achUrl || "" },
 			{ id: "cardUrlSession", value: cardUrl || "" },
@@ -2160,7 +2085,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 
 	eventForPayNowBtn() {
-		console.log("eventForPayNowBtn");
 		const $this = this;
 		function handlePayNowClick(e, payNowEl) {
 			e.preventDefault();
@@ -2173,7 +2097,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				payNowEl.innerHTML = "Processing...";
 				var activeTab = document.querySelector('.checkout-tab-link.w--current');
 				var isCard = !!(activeTab && activeTab.classList.contains('credit-card-tab'));
-				console.log('[Online class] Calling checkout API for offering', $this.$selectedClassOfferingId, isCard ? '(card)' : '(ACH)');
 				$this.createCheckoutUrlForOnlineClass($this.$selectedClassOfferingId)
 					.then(function (urls) {
 						var goUrl = isCard ? (urls && urls.cardUrl) || ($this.$checkoutData && $this.$checkoutData.cardUrl) : (urls && urls.achUrl) || ($this.$checkoutData && $this.$checkoutData.achUrl);
@@ -2212,7 +2135,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var tab = allTabs[i];
 			if (!tab) continue;
 			tab.addEventListener('click', function () {
-				console.log("updateOnlineClassPriceForTab eventForPayNowBtn");
 				$this.updateOnlineClassPriceForTab(this);
 				if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "block";
 				if (payNowLinkMo && payNowLinkMo.closest('div')) payNowLinkMo.closest('div').style.display = "block";
@@ -2253,7 +2175,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var runPriceUpdate = function () {
 				var activeTab = document.querySelector('.checkout-tab-link.w--current') || document.querySelector('.checkout-tab-link');
 				if (activeTab) {
-					console.log("updateOnlineClassPriceForTab eventForPayNowBtn (initial)");
 					$this.updateOnlineClassPriceForTab(activeTab);
 				}
 			};
@@ -2266,7 +2187,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	//updateOldStudentList
 	async updateOldStudentList() {
-		console.log("updateOldStudentList");
 		const selectBox = document.getElementById('old-student');
 		if (!selectBox) return;
 		var $this = this;
@@ -2323,12 +2243,10 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				});
 			}
 		} catch (error) {
-			console.error('Error fetching API data:', error);
 			selectBox.innerHTML = '<option value="">Student Details not available</option>';
 		}
 	}
 	displayUpSellModal() {
-		console.log("displayUpSellModal");
 		if (!this.memberData || !this.memberData.isAdmin) {
 			return;
 		}
@@ -2359,7 +2277,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 	showUpSellModal(modal) {
-		console.log("showUpSellModal");
 		const check_up_sell = this.checkUpSellModalOpen();
 		//console.log('check_up_sell', check_up_sell)
 		if (check_up_sell) {
@@ -2370,7 +2287,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		document.querySelector('.upsell-modal-bg').setAttribute('aria-hidden', 'false');
 	}
 	checkUpSellModalOpen() {
-		console.log("checkUpSellModalOpen");
 		let isOpen = false;
 		const addToCartButtons = document.querySelectorAll(".add-to-card.upsell_add_to_card");
 		addToCartButtons.forEach(button => {
@@ -2385,7 +2301,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		return isOpen;
 	}
 	uncheckAllCardCheckbox() {
-		console.log("uncheckAllCardCheckbox");
 		//setTimeout(() => {
 			const addToCartButtons = document.querySelectorAll(".add-to-card");
 			addToCartButtons.forEach(button => {
@@ -2401,13 +2316,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		//}, 100);
 	}
 	hideUpSellModal(modal) {
-		console.log("hideUpSellModal");
 		modal.classList.remove('show');
 		modal.style.display = 'none';
 		document.querySelector('.upsell-modal-bg').removeAttribute('aria-hidden');
 	}
 	addToCart() {
-		console.log("addToCart");
 		// Select all 'add-to-card' buttons
 		const addToCartButtons = document.querySelectorAll(".add-to-card");
 		var $this = this;
@@ -2481,7 +2394,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		});
 	}
 	async displaySupplementaryProgram() {
-		console.log("displaySupplementaryProgram");
 		let container2 = document.getElementById("checkout-supplimentary-data-2");
 		let swiperSlideWrapper = container2.querySelector('.you-might_slick-slider')
 
@@ -2599,7 +2511,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 	initSlickSlider() {
-		console.log("initSlickSlider");
 		var $slider = $('.you-might_slick-slider');
 		
 		if ($slider.hasClass('slick-initialized')) {
@@ -2681,7 +2592,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	}
 	updateUpSellModal(prep_week_data, tutoring_data, care_package_data) {
-		console.log("updateUpSellModal");
 
 		if (prep_week_data.length > 0) {
 			var tpwAmount = document.getElementById('tpw-amount');
@@ -2780,7 +2690,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// New UpSell Program / Supplementary
 	displaySingleSuppProgram(item, size, slideDiv) {
-		console.log("displaySingleSuppProgram");
 		var $this = this;
 		// Create the outer-shadow div
 		//const outerDiv = document.createElement("div");
@@ -2911,7 +2820,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		return gridDiv;
 	}
 	getVariant() {
-		console.log("getVariant");
 		let variant = 1;
 		//let topicPripUpSellModal = document.querySelector('.topic-prep_modal-container')
 		let tutoringUpSellModal = document.querySelector('.upsell-modal-container.tutoring')
@@ -2921,7 +2829,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		return variant
 	}
 	hideShowCartVideo(visibility) {
-		console.log("hideShowCartVideo");
 		let videoEl = document.querySelector('.cart-sidebar .w-embed-youtubevideo');
 		if (visibility == "show") {
 			videoEl.style.display = "block"
@@ -2930,13 +2837,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 	hideShowDivById(Id, display) {
-		console.log("hideShowDivById");
 		if (Id) {
 			document.getElementById(Id).style.display = display
 		}
 	}
 	hideAndShowWhyFamilies(classs, display) {
-		console.log("hideAndShowWhyFamilies");
 		if (classs) {
 			document.querySelector('.' + classs).style.display = display
 		}
@@ -2974,13 +2879,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
             }
 	}
 	hideAndShowByClass(classs, display) {
-		console.log("hideAndShowByClass");
 		if (classs) {
 			document.querySelector('.' + classs).style.display = display
 		}
 	}
 	activeBreadCrumb(activeId) {
-		console.log("activeBreadCrumb");
 		var activeEl = document.getElementById(activeId);
 		if (!activeEl && activeId === 'pay-deposite') activeEl = document.getElementById('select-class-and-pay');
 		var breadCrumbList = document.querySelectorAll('.stepper-container .stepper li, .stepper-container ul li, ul.stepper li, ul li.step');
@@ -3009,19 +2912,16 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	// New Supplimentary program update
 
 	showModal(display){
-		console.log("showModal");
 		const suppProgramsModal = document.getElementById('suppProgramsModal');
 		suppProgramsModal.classList.add('show');
 		suppProgramsModal.style.display = 'flex';
 	}
 	hideModal(){
-		console.log("hideModal");
 		const suppProgramsModal = document.getElementById('suppProgramsModal');
 		suppProgramsModal.classList.add('show');
 		suppProgramsModal.style.display = 'flex';
 	}
 	closeIconEvent() {
-		console.log("closeIconEvent");
 		const closeLinks = document.querySelectorAll(
 		  ".upsell-close-link, .main-button.close"
 		);
@@ -3051,7 +2951,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	  }
 	// New UpSell Program / Supplementary
 	newDisplaySingleSuppProgram(item, size, slideDiv) {
-		console.log("newDisplaySingleSuppProgram");
 		// Create main grid container
 		const gridDiv = document.createElement("div");
 		gridDiv.classList.add("w-layout-grid", "payment-conf-program-grid", "you-might");
@@ -3230,7 +3129,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	  
 
 	displayModalSuppProgram(item, type = "banner", size="desktop") {
-		console.log("displayModalSuppProgram");
 		var $this = this;
 		let discount_amount = item.disc_amount - item.amount;
 		let discount = Number.isInteger(discount_amount)
