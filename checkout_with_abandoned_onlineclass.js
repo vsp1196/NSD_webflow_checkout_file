@@ -760,6 +760,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		if (coreInput) coreInput.value = formattedValue;
 		// Update element with class oc-price (dm-sans font-18 right-justified price-order-details oc-price)
 		var ocPriceElements = document.querySelectorAll(".oc-price");
+		console.log("ocPriceElements "+ocPriceElements);
 		var updatedCount = 0;
 		for (var i = 0; i < ocPriceElements.length; i++) {
 			ocPriceElements[i].textContent = displayPrice;
