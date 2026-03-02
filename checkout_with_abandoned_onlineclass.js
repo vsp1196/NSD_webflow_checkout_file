@@ -762,10 +762,14 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var orderSummaryWrappers = document.querySelectorAll(".residential-order-summary-3");
 		console.log("[price] .residential-order-summary-3 found:", orderSummaryWrappers.length, orderSummaryWrappers.length ? "yes" : "NO");
 		var updatedCount = 0;
+
+  		document.querySelectorAll(".price-order-details").forEach(el => el.textContent = displayPrice);
 		for (var o = 0; o < orderSummaryWrappers.length; o++) {
 			var priceP = orderSummaryWrappers[o].querySelector("p.price-order-details");
+			console.log("priceP "+priceP)
 			if (priceP) {
 				priceP.textContent = displayPrice;
+				console.log("priceP.textContent "+priceP.textContent);
 				updatedCount++;
 				console.log("[price] element found and updated, new textContent:", priceP.textContent);
 			} else {
