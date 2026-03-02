@@ -2923,28 +2923,43 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	closeIconEvent() {
 		const closeLinks = document.querySelectorAll(
-		  ".upsell-close-link, .main-button.close"
+		  ".upsell-close-link, .main-button.close, [wb-data=\"close\"]"
 		);
 		closeLinks.forEach(function (closeLink) {
 		  closeLink.addEventListener("click", function (event) {
 			event.preventDefault();
 			event.stopPropagation(); // Prevent event bubbling
-	
+
 			// First, try getting the modal from `data-target`
 			const targetModalId = closeLink.getAttribute("data-target");
 			let targetModal = targetModalId
 			  ? document.getElementById(targetModalId)
 			  : null;
-	
-			// If no `data-target`, find the closest parent that is a modal (checking if it has inline `display: flex;`)
+
+			// If no `data-target`, find the closest parent that is a modal
 			if (!targetModal) {
 			  targetModal = closeLink.closest('[role="dialog"][aria-modal="true"]');
 			}
-	
+			// Webflow / login modal may not use role="dialog"; try common modal wrappers
+			if (!targetModal) {
+			  targetModal = closeLink.closest('.w-modal');
+			}
+			if (!targetModal) {
+			  targetModal = closeLink.closest('[class*="modal"]');
+			}
+			if (!targetModal) {
+			  targetModal = closeLink.closest('.w-overlay');
+			}
+
 			if (targetModal) {
-			  //console.log(`Closing ${targetModal.id}`);
 			  targetModal.classList.remove("show");
 			  targetModal.style.display = "none";
+			  // If modal sits inside an overlay, hide the overlay too (e.g. Webflow login modal)
+			  var overlay = targetModal.parentElement;
+			  if (overlay && (overlay.classList.contains('w-overlay') || /overlay|modal-wrapper/i.test(overlay.className))) {
+			    overlay.classList.remove("show");
+			    overlay.style.display = "none";
+			  }
 			}
 		  });
 		});
