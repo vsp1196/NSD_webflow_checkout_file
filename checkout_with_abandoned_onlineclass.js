@@ -1400,6 +1400,13 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			idx = stepOrder.indexOf(stepId);
 			if (idx >= 0 && allStepLis[idx]) allStepLis[idx].classList.add('active');
 		}
+		if (divId === 'checkout_payment' && typeof this.updateOnlineClassPriceForTab === 'function' && this.isOnlineClassPage()) {
+			var activeTab = document.querySelector('.checkout-tab-link.w--current') || document.querySelector('.checkout-tab-link');
+			if (activeTab) {
+				console.log("updateOnlineClassPriceForTab eventForPayNowBtn (payment step shown)");
+				this.updateOnlineClassPriceForTab(activeTab);
+			}
+		}
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
 	addEventForPrevNaxt() {
@@ -2167,6 +2174,19 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					});
 				}
 			});
+		}
+		// Online class: set oc-price on load from active tab (in case user never clicks a tab)
+		if ($this.isOnlineClassPage()) {
+			var runPriceUpdate = function () {
+				var activeTab = document.querySelector('.checkout-tab-link.w--current') || document.querySelector('.checkout-tab-link');
+				if (activeTab) {
+					console.log("updateOnlineClassPriceForTab eventForPayNowBtn (initial)");
+					$this.updateOnlineClassPriceForTab(activeTab);
+				}
+			};
+			runPriceUpdate();
+			setTimeout(runPriceUpdate, 200);
+			setTimeout(runPriceUpdate, 500);
 		}
 	}
 	/**New Code for select old student */
