@@ -1476,32 +1476,11 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			});
 		}
 		if (prev_page_2) {
-			prev_page_2.addEventListener("click", function () {
+			prev_page_2.addEventListener("click", function (e) {
+				e.preventDefault();
 				$this.reinitializePaymentTab();
 				$this.activateDiv("checkout_student_details");
 			});
-		}
-		function goBackToStudentDetails() {
-			$this.reinitializePaymentTab();
-			$this.activateDiv("checkout_student_details");
-		}
-		var backToStudentBtn = document.getElementById("back-to-student-details");
-		if (backToStudentBtn) {
-			backToStudentBtn.addEventListener("click", function (e) {
-				e.preventDefault();
-				goBackToStudentDetails();
-			});
-		} else {
-			var backToStudentLinks = document.querySelectorAll('a.main-button.w-button, a[href="#"].main-button');
-			for (var b = 0; b < backToStudentLinks.length; b++) {
-				if (backToStudentLinks[b].textContent.replace(/\s+/g, ' ').trim().indexOf('Back to student details') !== -1) {
-					backToStudentLinks[b].addEventListener("click", function (e) {
-						e.preventDefault();
-						goBackToStudentDetails();
-					});
-					break;
-				}
-			}
 		}
 
 		let editStudentEl = document.querySelectorAll("[data-student-info='edit']")
@@ -1518,23 +1497,31 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	}
 	// Reinitializes payment tab by resetting UI state and hiding payment links
 	reinitializePaymentTab(){
-		document.getElementsByClassName("bank-transfer-tab")[0].click();
-		document.getElementById('pay-now-link').closest('div').style.display = "none";
-		document.getElementById('pay-now-link-2').closest('div').style.display = "none";
-		document.getElementById('pay-now-link-3').closest('div').style.display = "none";
-		this.hideShowDivById('checkout-supplimentary-data-2', 'none')
-		this.hideShowDivById('checkout-supplimentary-data-desktop', 'none')
+		var bankTransferTab = document.getElementsByClassName("bank-transfer-tab")[0];
+		if (bankTransferTab) bankTransferTab.click();
+		var payNowLink = document.getElementById('pay-now-link');
+		if (payNowLink && payNowLink.closest('div')) payNowLink.closest('div').style.display = "none";
+		var payNowLink2 = document.getElementById('pay-now-link-2');
+		if (payNowLink2 && payNowLink2.closest('div')) payNowLink2.closest('div').style.display = "none";
+		var payNowLink3 = document.getElementById('pay-now-link-3');
+		if (payNowLink3 && payNowLink3.closest('div')) payNowLink3.closest('div').style.display = "none";
+		this.hideShowDivById('checkout-supplimentary-data-2', 'none');
+		this.hideShowDivById('checkout-supplimentary-data-desktop', 'none');
 		this.displayStudentInfo("none");
-		this.hideAndShowWhyFamilies('why-families-div', 'block')
-		this.hideAndShowByClass('rated-debate-banner', 'flex')
+		this.hideAndShowWhyFamilies('why-families-div', 'block');
+		this.hideAndShowByClass('rated-debate-banner', 'flex');
 		this.hideShowCartVideo('show');
-		this.activeBreadCrumb('student-details')
+		this.activateDiv("checkout_student_details");
+		this.activeBreadCrumb('student-details');
 		setTimeout(function () {
-			$(".w-tab-link").removeClass("w--current");
-			$(".w-tab-pane").removeClass("w--tab-active");
-			Webflow.require("tabs").redraw();
+			if (typeof $ !== "undefined" && $(".w-tab-link").length) {
+				$(".w-tab-link").removeClass("w--current");
+				$(".w-tab-pane").removeClass("w--tab-active");
+				if (typeof Webflow !== "undefined" && Webflow.require) {
+					try { Webflow.require("tabs").redraw(); } catch (err) {}
+				}
+			}
 		}, 2000);
-		
 	}
 	// validating duplicate email
 	checkUniqueStudentEmail() {
