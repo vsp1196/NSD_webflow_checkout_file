@@ -1220,7 +1220,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			//return true;
 			var xhr = new XMLHttpRequest()
 			var $this = this;
-			xhr.open("POST", "https://3yf0irxn2c.execute-api.us-west-1.amazonaws.com/dev/camp/"+$baseUrl, true)
+			xhr.open("POST", "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/"+$baseUrl, true)
 			xhr.withCredentials = false
 			xhr.send(JSON.stringify(data))
 			xhr.onload = function () {
