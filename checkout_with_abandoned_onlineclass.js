@@ -764,6 +764,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		var updatedCount = 0;
 		for (var i = 0; i < ocPriceElements.length; i++) {
 			ocPriceElements[i].textContent = displayPrice;
+			ocPriceElements[i].innerHTML = displayPrice;
 			updatedCount++;
 		}
 		// Fallback: .price-order-details if no .oc-price found
@@ -771,6 +772,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			var fallback = document.querySelectorAll(".price-order-details");
 			for (var j = 0; j < fallback.length; j++) {
 				fallback[j].textContent = displayPrice;
+				fallback[j].innerHTML = displayPrice;
 				updatedCount++;
 			}
 		}
