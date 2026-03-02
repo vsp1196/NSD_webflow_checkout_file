@@ -1153,7 +1153,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		return !!(document.querySelector(".checkout_offering-grid-container") || document.querySelector("[data-class-offering-id]"));
 	}
 	// Creates Stripe checkout URLs for ACH, card, and pay later payment methods
-	initializeStripePayment(paymentType = "", checkoutID = "", $baseUrl="createCheckoutUrlsByProgram") {
+	initializeStripePayment(paymentType = "", checkoutID = "", $baseUrl="createCheckoutUrlForOnlineClass") {
 		return new Promise((resolve, reject) => {
 			if (this.isOnlineClassPage() && ($baseUrl === "createCheckoutUrlsByProgram" || $baseUrl === "updateStripeCheckoutDb")) {
 				reject(new Error("Online class: use createCheckoutUrlForOnlineClass only"));
@@ -1987,6 +1987,8 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	// Calls createCheckoutUrlForOnlineClass API; returns a Promise that resolves with { achUrl, cardUrl, payLaterUrl } for redirect.
 	createCheckoutUrlForOnlineClass(classOfferingId) {
+		var apiUrl = "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/createCheckoutUrlForOnlineClass";
+		console.log("[Online class API] Calling:", apiUrl, "| class_offering_id:", classOfferingId, "| Check Network tab for this request.");
 		var studentEmailEl = document.getElementById("Student-Email");
 		var studentFirstNameEl = document.getElementById("Student-First-Name");
 		var studentLastNameEl = document.getElementById("Student-Last-Name");
@@ -2011,7 +2013,6 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			successUrl: "https://www.nsdebatecamp.com/online-classes/payment-confirmation",
 			cancelUrl: cancelUrl.href
 		};
-		var apiUrl = "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/createCheckoutUrlForOnlineClass";
 		var $this = this;
 		return fetch(apiUrl, {
 			method: "POST",
@@ -2030,6 +2031,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				var cardUrl = data.cardUrl || "";
 				var payLaterUrl = data.payLaterUrl || "";
 				if (achUrl || cardUrl || payLaterUrl) {
+					console.log("[Online class API] Success. Redirect URLs received (achUrl, cardUrl, payLaterUrl).");
 					$this.$checkoutData = {
 						achUrl: achUrl,
 						cardUrl: cardUrl,
@@ -2051,7 +2053,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 				throw new Error("No checkout URLs in response");
 			})
 			.catch(function (err) {
-				console.error("[createCheckoutUrlForOnlineClass] error:", err);
+				console.error("[Online class API] Failed:", err.message || err);
 				return Promise.reject(err);
 			});
 	}
