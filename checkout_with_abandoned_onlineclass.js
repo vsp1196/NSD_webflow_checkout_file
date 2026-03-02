@@ -2829,17 +2829,22 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		}
 	}
 	activeBreadCrumb(activeId) {
+		var activeEl = document.getElementById(activeId);
+		if (!activeEl && activeId === 'pay-deposite') activeEl = document.getElementById('select-class-and-pay');
 		let breadCrumbList = document.querySelectorAll('.stepper-container ul li');
 		if (!breadCrumbList.length) breadCrumbList = document.querySelectorAll('ul li.step');
-		if (!breadCrumbList.length) {
-			// Fallback: get siblings from the step we're activating
-			var activeEl = document.getElementById(activeId);
-			if (activeEl && activeEl.parentElement) breadCrumbList = activeEl.parentElement.querySelectorAll('li');
+		if (!breadCrumbList.length && activeEl && activeEl.parentElement) {
+			breadCrumbList = activeEl.parentElement.querySelectorAll('li');
 		}
-		breadCrumbList.forEach(element => element.classList.remove('active'));
-		if (activeEl) activeEl.classList.add('active');
-		// Keep content panel in sync with stepper (so active tab matches active step)
-		const stepToDivId = {
+		breadCrumbList.forEach(function (element) { element.classList.remove('active'); });
+		if (activeEl) {
+			activeEl.classList.add('active');
+		} else {
+			var stepOrder = ['program', 'student-details', 'pay-deposite'];
+			var idx = stepOrder.indexOf(activeId);
+			if (idx >= 0 && breadCrumbList[idx]) breadCrumbList[idx].classList.add('active');
+		}
+		var stepToDivId = {
 			'program': 'checkout_program',
 			'student-details': 'checkout_student_details',
 			'pay-deposite': 'checkout_payment'
