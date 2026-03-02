@@ -758,35 +758,32 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		console.log("[price] displayPrice:", displayPrice, "formattedValue:", formattedValue);
 		var coreInput = document.getElementById("core_product_price");
 		if (coreInput) coreInput.value = formattedValue;
-		// Update element with class oc-price (dm-sans font-18 right-justified price-order-details oc-price)
-		var ocPriceElements = document.querySelectorAll(".oc-price");
-		console.log("ocPriceElements "+ocPriceElements);
-		console.log("[price] found:", ocPriceElements.length);
-		var updatedCount = 0;
-		for (var i = 0; i < ocPriceElements.length; i++) {
-			console.log("ocPriceElements[i] "+ocPriceElements[i]);
-			console.log("ocPriceElements[i].textContent "+ocPriceElements[i].textContent);
-			console.log("ocPriceElements[i].innerHTML "+ocPriceElements[i].innerHTML);
-			ocPriceElements[i].textContent = displayPrice;
-			ocPriceElements[i].innerHTML = displayPrice;
-			updatedCount++;
-		}
-		// Fallback: .price-order-details if no .oc-price found
-		if (updatedCount === 0) {
-			var fallback = document.querySelectorAll(".price-order-details");
-			for (var j = 0; j < fallback.length; j++) {
-				fallback[j].textContent = displayPrice;
-				fallback[j].innerHTML = displayPrice;
-				updatedCount++;
+		var $this = this;
+		function setOcPrice() {
+			var el = document.querySelector(".oc-price") || document.querySelector("[class*='oc-price']");
+			console.log("[price] .oc-price element found:", !!el, el ? el.className : "none");
+			if (el) {
+				el.textContent = displayPrice;
+				console.log("[price] .oc-price updated to:", displayPrice);
+			} else {
+				var fallback = document.querySelector(".price-order-details");
+				if (fallback) {
+					fallback.textContent = displayPrice;
+					console.log("[price] fallback .price-order-details updated to:", displayPrice);
+				} else {
+					console.log("[price] no .oc-price or .price-order-details found");
+				}
 			}
 		}
-		// Make the order summary block visible: it's inside .online-program.hide – remove .hide so price shows
+		setOcPrice();
+		setTimeout(setOcPrice, 100);
+		setTimeout(setOcPrice, 300);
+		// Make the order summary block visible
 		var orderSummaryWrappers = document.querySelectorAll(".residential-order-summary-3");
 		for (var o = 0; o < orderSummaryWrappers.length; o++) {
 			var onlineProgram = orderSummaryWrappers[o].querySelector(".online-program.hide");
 			if (onlineProgram) onlineProgram.classList.remove("hide");
 		}
-		console.log("[price] total updated:", updatedCount);
 		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
 	}
 	// Toggles visibility of season info wrapper based on admin status
