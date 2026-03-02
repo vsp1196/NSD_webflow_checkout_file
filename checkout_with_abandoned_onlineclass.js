@@ -1380,19 +1380,24 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		});
 		var targetEl = document.getElementById(divId);
 		if (targetEl) targetEl.classList.add("active_checkout_tab");
-		// Sync stepper: set .active on the li that matches this content panel
+		// Sync stepper: remove .active from ALL step lis, then add .active to the matching step (by id)
 		var stepId = divIdToStepId[divId];
-		var breadCrumbList = document.querySelectorAll('.stepper-container ul li');
-		if (!breadCrumbList.length) breadCrumbList = document.querySelectorAll('ul li.step');
-		breadCrumbList.forEach(function (el) { el.classList.remove('active'); });
-		var stepOrder = ['program', 'student-details', 'pay-deposite'];
+		var allStepLis = document.querySelectorAll('.stepper-container .stepper li, .stepper-container ul li, ul.stepper li, ul li.step');
+		for (var i = 0; i < allStepLis.length; i++) {
+			allStepLis[i].classList.remove('active');
+		}
+		var studentDetailsLi = document.getElementById('student-details');
+		if (studentDetailsLi) studentDetailsLi.classList.remove('active');
 		var activeStepEl = stepId ? document.getElementById(stepId) : null;
 		if (!activeStepEl && stepId === 'pay-deposite') activeStepEl = document.getElementById('select-class-and-pay');
 		if (activeStepEl) {
 			activeStepEl.classList.add('active');
-		} else if (stepId && breadCrumbList.length) {
+		} else if (stepId && allStepLis.length) {
+			var stepOrder = ['create-account-new', 'student-details', 'pay-deposite', 'attend-camp'];
 			var idx = stepOrder.indexOf(stepId);
-			if (idx >= 0 && breadCrumbList[idx]) breadCrumbList[idx].classList.add('active');
+			if (idx < 0) stepOrder = ['program', 'student-details', 'pay-deposite'];
+			idx = stepOrder.indexOf(stepId);
+			if (idx >= 0 && allStepLis[idx]) allStepLis[idx].classList.add('active');
 		}
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
@@ -2843,17 +2848,17 @@ class CheckOutWebflow extends BriefsUpsellModal {
 	activeBreadCrumb(activeId) {
 		var activeEl = document.getElementById(activeId);
 		if (!activeEl && activeId === 'pay-deposite') activeEl = document.getElementById('select-class-and-pay');
-		let breadCrumbList = document.querySelectorAll('.stepper-container ul li');
-		if (!breadCrumbList.length) breadCrumbList = document.querySelectorAll('ul li.step');
-		if (!breadCrumbList.length && activeEl && activeEl.parentElement) {
-			breadCrumbList = activeEl.parentElement.querySelectorAll('li');
+		var breadCrumbList = document.querySelectorAll('.stepper-container .stepper li, .stepper-container ul li, ul.stepper li, ul li.step');
+		for (var b = 0; b < breadCrumbList.length; b++) {
+			breadCrumbList[b].classList.remove('active');
 		}
-		breadCrumbList.forEach(function (element) { element.classList.remove('active'); });
 		if (activeEl) {
 			activeEl.classList.add('active');
-		} else {
-			var stepOrder = ['program', 'student-details', 'pay-deposite'];
+		} else if (breadCrumbList.length) {
+			var stepOrder = ['create-account-new', 'student-details', 'pay-deposite', 'attend-camp'];
 			var idx = stepOrder.indexOf(activeId);
+			if (idx < 0) stepOrder = ['program', 'student-details', 'pay-deposite'];
+			idx = stepOrder.indexOf(activeId);
 			if (idx >= 0 && breadCrumbList[idx]) breadCrumbList[idx].classList.add('active');
 		}
 		var stepToDivId = {
