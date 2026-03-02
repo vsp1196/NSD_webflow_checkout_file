@@ -768,22 +768,29 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		for (var j = 0; j < pCorePrices.length; j++) {
 			if (pCorePrices[j]) pCorePrices[j].textContent = displayPrice;
 		}
-		var orderSummary = document.querySelector(".residential-order-summary-3");
-		if (orderSummary) {
-			var inSummary = orderSummary.querySelectorAll(".price-order-details, .pCorePrice, [id='online-class-order-price']");
+		var orderSummaries = document.querySelectorAll(".residential-order-summary-3");
+		for (var os = 0; os < orderSummaries.length; os++) {
+			var inSummary = orderSummaries[os].querySelectorAll(".price-order-details, .pCorePrice, [id='online-class-order-price']");
 			for (var k = 0; k < inSummary.length; k++) {
 				if (inSummary[k]) inSummary[k].textContent = displayPrice;
 			}
-			console.log("[updateOnlineClassPriceForTab] updated .residential-order-summary-3 inner count:", inSummary.length);
 		}
-		var totalGrid = document.querySelector(".total-price-grid-wrapper");
-		if (totalGrid) {
-			var totalPriceInGrid = totalGrid.querySelectorAll(".price-order-details, .pCorePrice");
+		for (var tg = 0; tg < totalGrids.length; tg++) {
+			var totalPriceInGrid = totalGrids[tg].querySelectorAll(".price-order-details, .pCorePrice");
 			for (var m = 0; m < totalPriceInGrid.length; m++) {
 				if (totalPriceInGrid[m]) totalPriceInGrid[m].textContent = displayPrice;
 			}
 		}
 		if (typeof this.updateOnlyTotalAmount === "function") this.updateOnlyTotalAmount();
+		var $this = this;
+		setTimeout(function () {
+			var dp = $this.formatOnlineClassDisplayPrice($this.$onlineClassBasePrice, isCreditCard);
+			var all = document.querySelectorAll(".price-order-details, .pCorePrice");
+			for (var a = 0; a < all.length; a++) { if (all[a]) all[a].textContent = dp; }
+			var op = document.getElementById("online-class-order-price");
+			if (op) op.textContent = dp;
+			if (typeof $this.updateOnlyTotalAmount === "function") $this.updateOnlyTotalAmount();
+		}, 150);
 	}
 	// Toggles visibility of season info wrapper based on admin status
 	toggleSeasonInfoVisibility() {
