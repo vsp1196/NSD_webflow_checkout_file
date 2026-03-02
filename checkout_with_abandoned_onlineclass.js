@@ -1370,18 +1370,30 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			}
 		});
 	}
-	// Activates the specified checkout tab by adding active class
+	// Activates the specified checkout tab and syncs the stepper (content panel + breadcrumb stay in sync)
 	activateDiv(divId) {
-		console.log("activateDiv");
+		var divIdToStepId = { checkout_program: 'program', checkout_student_details: 'student-details', checkout_payment: 'pay-deposite' };
 		var divIds = ["checkout_program", "checkout_student_details", "checkout_payment"];
-		// Remove the active class from all div elements
-		divIds.forEach((id) => {
+		divIds.forEach(function (id) {
 			var el = document.getElementById(id);
 			if (el) el.classList.remove("active_checkout_tab");
 		});
-		// Add the active class to the div with the specified id
 		var targetEl = document.getElementById(divId);
 		if (targetEl) targetEl.classList.add("active_checkout_tab");
+		// Sync stepper: set .active on the li that matches this content panel
+		var stepId = divIdToStepId[divId];
+		var breadCrumbList = document.querySelectorAll('.stepper-container ul li');
+		if (!breadCrumbList.length) breadCrumbList = document.querySelectorAll('ul li.step');
+		breadCrumbList.forEach(function (el) { el.classList.remove('active'); });
+		var stepOrder = ['program', 'student-details', 'pay-deposite'];
+		var activeStepEl = stepId ? document.getElementById(stepId) : null;
+		if (!activeStepEl && stepId === 'pay-deposite') activeStepEl = document.getElementById('select-class-and-pay');
+		if (activeStepEl) {
+			activeStepEl.classList.add('active');
+		} else if (stepId && breadCrumbList.length) {
+			var idx = stepOrder.indexOf(stepId);
+			if (idx >= 0 && breadCrumbList[idx]) breadCrumbList[idx].classList.add('active');
+		}
 	}
 	// Sets up event handlers for next and previous navigation buttons in checkout flow
 	addEventForPrevNaxt() {
