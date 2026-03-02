@@ -2011,7 +2011,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			successUrl: "https://www.nsdebatecamp.com/online-classes/payment-confirmation",
 			cancelUrl: cancelUrl.href
 		};
-		var apiUrl = "https://3yf0irxn2c.execute-api.us-west-1.amazonaws.com/dev/camp/createCheckoutUrlForOnlineClass";
+		var apiUrl = "https://8ri5d54llg.execute-api.us-west-1.amazonaws.com/test/camp/createCheckoutUrlForOnlineClass";
 		var $this = this;
 		return fetch(apiUrl, {
 			method: "POST",
@@ -2080,35 +2080,49 @@ class CheckOutWebflow extends BriefsUpsellModal {
 
 	eventForPayNowBtn() {
 		const $this = this;
+		function handlePayNowClick(e, payNowEl) {
+			e.preventDefault();
+			if ($this.isOnlineClassPage() && !$this.$selectedClassOfferingId) {
+				alert("Please select a class offering first.");
+				return;
+			}
+			if ($this.isOnlineClassPage() && $this.$selectedClassOfferingId) {
+				payNowEl.style.pointerEvents = "none";
+				payNowEl.innerHTML = "Processing...";
+				var activeTab = document.querySelector('.checkout-tab-link.w--current');
+				var isCard = !!(activeTab && activeTab.classList.contains('credit-card-tab'));
+				console.log('[Online class] Calling checkout API for offering', $this.$selectedClassOfferingId, isCard ? '(card)' : '(ACH)');
+				$this.createCheckoutUrlForOnlineClass($this.$selectedClassOfferingId)
+					.then(function (urls) {
+						var goUrl = isCard ? (urls && urls.cardUrl) || ($this.$checkoutData && $this.$checkoutData.cardUrl) : (urls && urls.achUrl) || ($this.$checkoutData && $this.$checkoutData.achUrl);
+						if (goUrl) window.location.href = goUrl;
+					})
+					.catch(function (err) {
+						payNowEl.style.pointerEvents = "";
+						payNowEl.innerHTML = payNowEl.getAttribute("data-default-text") || "Checkout";
+						alert("Something went wrong. Please try again.");
+					});
+				return;
+			}
+			payNowEl.style.pointerEvents = "none";
+			payNowEl.innerHTML = "Processing..";
+			var activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
+			if (activePaymentLink) activePaymentLink.click();
+		}
 		let payNowLink = document.getElementById('pay-now-link');
 		if (payNowLink) {
-			payNowLink.addEventListener("click", function (e) {
-				e.preventDefault();
-				payNowLink.style.pointerEvents = "none";
-				payNowLink.innerHTML = "Processing..";
-				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-				if (activePaymentLink) activePaymentLink.click();
-			});
+			payNowLink.setAttribute("data-default-text", payNowLink.innerHTML || "Checkout");
+			payNowLink.addEventListener("click", function (e) { handlePayNowClick(e, payNowLink); });
 		}
 		let payNowLinkMo = document.getElementById('pay-now-link-2');
 		if (payNowLinkMo) {
-			payNowLinkMo.addEventListener("click", function (e) {
-				e.preventDefault();
-				payNowLinkMo.style.pointerEvents = "none";
-				payNowLinkMo.innerHTML = "Processing..";
-				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-				if (activePaymentLink) activePaymentLink.click();
-			});
+			payNowLinkMo.setAttribute("data-default-text", payNowLinkMo.innerHTML || "Checkout");
+			payNowLinkMo.addEventListener("click", function (e) { handlePayNowClick(e, payNowLinkMo); });
 		}
 		let payNowLink3 = document.getElementById('pay-now-link-3');
 		if (payNowLink3) {
-			payNowLink3.addEventListener("click", function (e) {
-				e.preventDefault();
-				payNowLink3.style.pointerEvents = "none";
-				payNowLink3.innerHTML = "Processing..";
-				let activePaymentLink = document.querySelector('.checkout_payment .w--tab-active a');
-				if (activePaymentLink) activePaymentLink.click();
-			});
+			payNowLink3.setAttribute("data-default-text", payNowLink3.innerHTML || "Checkout");
+			payNowLink3.addEventListener("click", function (e) { handlePayNowClick(e, payNowLink3); });
 		}
 
 		var allTabs = document.getElementsByClassName("checkout-tab-link");
