@@ -1362,7 +1362,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 			localStorage.setItem("isAbandonedModalOpen", false);
 			var xhr = new XMLHttpRequest()
 			
-			xhr.open("POST", "https://3yf0irxn2c.execute-api.us-west-1.amazonaws.com/dev/camp/updateStripeCheckoutDb", true)
+			xhr.open("POST", `${_BASE_URL_}/camp/updateStripeCheckoutDb`, true)
 			xhr.withCredentials = false
 			xhr.send(JSON.stringify(data))
 			xhr.onload = function () {
