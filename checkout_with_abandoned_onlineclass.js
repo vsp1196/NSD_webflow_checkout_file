@@ -1577,7 +1577,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 						.catch(function (err) {
 							ach_payment.innerHTML = "Checkout";
 							ach_payment.disabled = false;
-							alert("Something went wrong. Please try again.");
+							alert(err && err.message ? err.message : "Something went wrong. Please try again.");
 						});
 					return;
 				}
@@ -1621,7 +1621,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 						.catch(function (err) {
 							card_payment.innerHTML = "Checkout";
 							card_payment.disabled = false;
-							alert("Something went wrong. Please try again.");
+							alert(err && err.message ? err.message : "Something went wrong. Please try again.");
 						});
 					return;
 				}
@@ -2027,7 +2027,10 @@ class CheckOutWebflow extends BriefsUpsellModal {
 		})
 			.then(function (res) {
 				if (!res.ok) {
-					return res.json().catch(function () { return null; }).then(function (data) { throw new Error(data && data.message ? data.message : "API error"); });
+					return res.json().catch(function () { return null; }).then(function (data) {
+						var msg = (data && (data.message || data.error || data.errorMessage)) || "API error";
+						throw new Error(msg);
+					});
 				}
 				return res.json();
 			})
@@ -2105,7 +2108,7 @@ class CheckOutWebflow extends BriefsUpsellModal {
 					.catch(function (err) {
 						payNowEl.style.pointerEvents = "";
 						payNowEl.innerHTML = payNowEl.getAttribute("data-default-text") || "Checkout";
-						alert("Something went wrong. Please try again.");
+						alert(err && err.message ? err.message : "Something went wrong. Please try again.");
 					});
 				return;
 			}
